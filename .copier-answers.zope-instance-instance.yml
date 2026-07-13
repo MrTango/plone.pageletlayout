@@ -1,0 +1,8 @@
+# Changes here will be overwritten by Copier
+_src_path: /home/maik/.copier-templates/plone-copier-templates/zope_instance
+base_path: var
+db_storage: instance
+initial_zope_username: admin
+instance_name: instance
+port: 8080
+

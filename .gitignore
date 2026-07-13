@@ -45,12 +45,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Type checkers / linters
-.mypy_cache/
-.pyre/
-.pytype/
-.ruff_cache/
-
 # Translations (compiled catalogs are generated; .pot/.po are tracked)
 *.mo
 
@@ -63,14 +57,20 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDEs / editors
+# Type checkers / linters
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# IDEs
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 
-# Node / frontend tooling (themes, mockup patterns, svelte apps)
+# Node / frontend tooling
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -80,11 +80,9 @@ pnpm-debug.log*
 .parcel-cache/
 .vite/
 
-# Build outputs from frontend tooling (in addition to top-level dist/)
-src/plonetheme/pageletbase/**/dist/
-src/plonetheme/pageletbase/**/.cache/
-
 # Plone / Zope runtime data
+var/*/inituser
+var/*/var/
 *.fs
 *.fs.index
 *.fs.lock
@@ -94,4 +92,3 @@ blobs/
 # Project specific
 *.log
 .DS_Store
-Thumbs.db

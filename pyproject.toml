@@ -26,6 +26,10 @@ keywords = ["Plone", "CMS"]
 dependencies = [
     "Plone>=6.2",
     "setuptools<81",
+    "plone.classicui",
+    "Paste",
+    "plone.app.caching",
+    "plone.app.upgrade",
 ]
 
 [project.optional-dependencies]
@@ -62,12 +66,20 @@ plone_version = "6.2"
 is_headless = false
 author_name = "Maik Derstappen"
 author_email = "md@derico.de"
+zope_setup = true
 
 [tool.plone.backend_addon.settings.subtemplates]
 content_types = []
 behaviors = []
 services = []
 
+
+[tool.plone.project.settings]
+plone_version = "6.2.1"
+distribution = "plone.classicui"
+db_storage = "instance"
+base_path = "var"
+instances = ["instance"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
@@ -108,3 +120,9 @@ known-first-party = ["plonetheme"]
 
 [tool.ruff.format]
 preview = true
+
+[tool.uv]
+constraint-dependencies = ["Products.CMFPlone==6.2.1"]
+
+[dependency-groups]
+dev = ["invoke", "watchdog"]
