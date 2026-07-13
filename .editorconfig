@@ -1,0 +1,21 @@
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.py]
+indent_size = 4
+
+[*.{cfg,ini,toml}]
+indent_size = 4
+
+[*.{xml,zcml,html,pt,zpt}]
+indent_size = 2
+
+[*.{css,js,json}]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
