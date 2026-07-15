@@ -70,13 +70,16 @@
       />
 
   <!-- 3. THE pagelet layout: one published view (pagelet_view) per content
-       type, sharing ONE shell (templates/layout.pt). The FTI default_view
-       flips to pagelet_view (profiles/default/types/). -->
+       type, sharing ONE shell (templates/layout.pt, registered once at the
+       bottom). Each stanza is one-stroke: inline template= registers the
+       body-only content template for the class. The FTI default_view flips
+       to pagelet_view (profiles/default/types/). -->
 
   <!-- Document -->
   <plone:pagelet
       name="pagelet_view"
       class=".layout.LayoutDocumentPagelet"
+      template="templates/document.pt"
       for="plone.app.contenttypes.interfaces.IDocument"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
@@ -86,6 +89,7 @@
   <plone:pagelet
       name="pagelet_view"
       class=".layout.LayoutNewsItemPagelet"
+      template="templates/newsitem.pt"
       for="plone.app.contenttypes.interfaces.INewsItem"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
@@ -93,6 +97,7 @@
   <plone:pagelet
       name="pagelet_view"
       class=".layout.LayoutEventPagelet"
+      template="templates/event.pt"
       for="plone.event.interfaces.IEvent"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
@@ -100,6 +105,7 @@
   <plone:pagelet
       name="pagelet_view"
       class=".layout.LayoutFilePagelet"
+      template="templates/file.pt"
       for="plone.app.contenttypes.interfaces.IFile"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
@@ -107,6 +113,7 @@
   <plone:pagelet
       name="pagelet_view"
       class=".layout.LayoutImagePagelet"
+      template="templates/image.pt"
       for="plone.app.contenttypes.interfaces.IImage"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
@@ -114,6 +121,7 @@
   <plone:pagelet
       name="pagelet_view"
       class=".layout.LayoutLinkPagelet"
+      template="templates/link.pt"
       for="plone.app.contenttypes.interfaces.ILink"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
@@ -121,174 +129,83 @@
 
   <!-- ======================================================================
        Folderish listing views (ticket 12): the shared listing / summary /
-       tabular / full / album formats. ONE published pagelet class per FORMAT,
-       registered for Folder, Collection (the collection behaviour) AND the site
-       root (whose old siteroot_listing folds in here). The FTI already defaults
-       Folder/Collection to listing_view; these registrations shadow the stock
-       @@listing_view etc. on our layer so the Display menu drives the pagelet
-       layout. profiles flip only the site root (Plone_Site.xml).
+       tabular / full / album formats. ONE stanza per FORMAT: multi-`for`
+       registers each for Folder, Collection (the collection behaviour) AND
+       the site root (whose old siteroot_listing folds in here). The FTI
+       already defaults Folder/Collection to listing_view; these registrations
+       shadow the stock @@listing_view etc. on our layer so the Display menu
+       drives the pagelet layout. profiles flip only the site root
+       (Plone_Site.xml).
        ====================================================================== -->
-  <plone:pagelet name="listing_view" class=".layout.LayoutListingPagelet"
-      for="plone.app.contenttypes.interfaces.IFolder"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="listing_view" class=".layout.LayoutListingPagelet"
-      for="plone.app.contenttypes.behaviors.collection.ISyndicatableCollection"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="listing_view" class=".layout.LayoutListingPagelet"
-      for="plone.base.interfaces.IPloneSiteRoot"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-
-  <plone:pagelet name="summary_view" class=".layout.LayoutSummaryPagelet"
-      for="plone.app.contenttypes.interfaces.IFolder"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="summary_view" class=".layout.LayoutSummaryPagelet"
-      for="plone.app.contenttypes.behaviors.collection.ISyndicatableCollection"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="summary_view" class=".layout.LayoutSummaryPagelet"
-      for="plone.base.interfaces.IPloneSiteRoot"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-
-  <plone:pagelet name="tabular_view" class=".layout.LayoutTabularPagelet"
-      for="plone.app.contenttypes.interfaces.IFolder"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="tabular_view" class=".layout.LayoutTabularPagelet"
-      for="plone.app.contenttypes.behaviors.collection.ISyndicatableCollection"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="tabular_view" class=".layout.LayoutTabularPagelet"
-      for="plone.base.interfaces.IPloneSiteRoot"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-
-  <plone:pagelet name="full_view" class=".layout.LayoutFullPagelet"
-      for="plone.app.contenttypes.interfaces.IFolder"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="full_view" class=".layout.LayoutFullPagelet"
-      for="plone.app.contenttypes.behaviors.collection.ISyndicatableCollection"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="full_view" class=".layout.LayoutFullPagelet"
-      for="plone.base.interfaces.IPloneSiteRoot"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-
-  <plone:pagelet name="album_view" class=".layout.LayoutAlbumPagelet"
-      for="plone.app.contenttypes.interfaces.IFolder"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="album_view" class=".layout.LayoutAlbumPagelet"
-      for="plone.app.contenttypes.behaviors.collection.ISyndicatableCollection"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <plone:pagelet name="album_view" class=".layout.LayoutAlbumPagelet"
-      for="plone.base.interfaces.IPloneSiteRoot"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-
-  <!-- content templates (the body-only content pagelets) -->
-  <plone:template
-      template="templates/document.pt"
-      for=".layout.LayoutDocumentPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:template
+  <plone:pagelet
+      name="listing_view"
+      class=".layout.LayoutListingPagelet"
       template="templates/listing.pt"
-      for=".layout.LayoutListingPagelet"
+      for="plone.app.contenttypes.interfaces.IFolder
+           plone.app.contenttypes.behaviors.collection.ISyndicatableCollection
+           plone.base.interfaces.IPloneSiteRoot"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
       />
-  <plone:template
+  <plone:pagelet
+      name="summary_view"
+      class=".layout.LayoutSummaryPagelet"
       template="templates/summary.pt"
-      for=".layout.LayoutSummaryPagelet"
+      for="plone.app.contenttypes.interfaces.IFolder
+           plone.app.contenttypes.behaviors.collection.ISyndicatableCollection
+           plone.base.interfaces.IPloneSiteRoot"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
       />
-  <plone:template
+  <plone:pagelet
+      name="tabular_view"
+      class=".layout.LayoutTabularPagelet"
       template="templates/tabular.pt"
-      for=".layout.LayoutTabularPagelet"
+      for="plone.app.contenttypes.interfaces.IFolder
+           plone.app.contenttypes.behaviors.collection.ISyndicatableCollection
+           plone.base.interfaces.IPloneSiteRoot"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
       />
-  <plone:template
+  <plone:pagelet
+      name="full_view"
+      class=".layout.LayoutFullPagelet"
       template="templates/full.pt"
-      for=".layout.LayoutFullPagelet"
+      for="plone.app.contenttypes.interfaces.IFolder
+           plone.app.contenttypes.behaviors.collection.ISyndicatableCollection
+           plone.base.interfaces.IPloneSiteRoot"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
       />
-  <plone:template
+  <plone:pagelet
+      name="album_view"
+      class=".layout.LayoutAlbumPagelet"
       template="templates/album.pt"
-      for=".layout.LayoutAlbumPagelet"
+      for="plone.app.contenttypes.interfaces.IFolder
+           plone.app.contenttypes.behaviors.collection.ISyndicatableCollection
+           plone.base.interfaces.IPloneSiteRoot"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:template
-      template="templates/newsitem.pt"
-      for=".layout.LayoutNewsItemPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:template
-      template="templates/event.pt"
-      for=".layout.LayoutEventPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:template
-      template="templates/file.pt"
-      for=".layout.LayoutFilePagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:template
-      template="templates/image.pt"
-      for=".layout.LayoutImagePagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:template
-      template="templates/link.pt"
-      for=".layout.LayoutLinkPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
       />
 
-  <!-- the shared shell -->
+  <!-- The shared shell: ONE layout template for all eleven published
+       pagelets. Registered standalone (there is deliberately no inline
+       layout= — the frame is the site's to provide, not the pagelet's to
+       declare); the body-only content templates ride inline on the pagelet
+       stanzas above. -->
   <plone:layout
       template="templates/layout.pt"
-      for=".layout.LayoutDocumentPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutListingPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutSummaryPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutTabularPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutFullPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutAlbumPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutNewsItemPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutEventPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutFilePagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutImagePagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      />
-  <plone:layout
-      template="templates/layout.pt"
-      for=".layout.LayoutLinkPagelet"
+      for=".layout.LayoutDocumentPagelet
+           .layout.LayoutNewsItemPagelet
+           .layout.LayoutEventPagelet
+           .layout.LayoutFilePagelet
+           .layout.LayoutImagePagelet
+           .layout.LayoutLinkPagelet
+           .layout.LayoutListingPagelet
+           .layout.LayoutSummaryPagelet
+           .layout.LayoutTabularPagelet
+           .layout.LayoutFullPagelet
+           .layout.LayoutAlbumPagelet"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
 

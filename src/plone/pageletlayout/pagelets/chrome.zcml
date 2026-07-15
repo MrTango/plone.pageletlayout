@@ -120,9 +120,9 @@
       template="templates/copyright.pt"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
+  <!-- colophon: static Powered-by-Plone markup, template-only. -->
   <plone:chromepagelet
       name="plone.pageletlayout.colophon"
-      class=".footer.ColophonChromePagelet"
       template="templates/colophon.pt"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />

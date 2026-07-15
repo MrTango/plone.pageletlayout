@@ -28,11 +28,6 @@ class CopyrightChromePagelet(ChromePagelet):
         self.year = DateTime().year()
 
 
-class ColophonChromePagelet(ChromePagelet):
-    """The colophon (~the 'colophon' Classic portlet): the static
-    Powered-by-Plone link — template-only."""
-
-
 class SiteActionsChromePagelet(ChromePagelet):
     """The site actions (~the 'actions' portlet, category site_actions):
     Site Map / Accessibility / Contact from the actions tool. No visible

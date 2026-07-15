@@ -1,0 +1,3 @@
+<html tal:omit-tag="">
+<div id="ticket03-frame" tal:content="structure view/render" />
+</html>
