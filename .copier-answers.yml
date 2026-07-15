@@ -7,7 +7,7 @@ author_name: Maik Derstappen
 github_organization: plonetheme
 is_headless: false
 package_description: A Plone theme base for themes based on pagelets
-package_name: plonetheme.pageletbase
+package_name: plone.pageletlayout
 package_title: Plonetheme Pagelet Base
 plone_version: '6.2'
 

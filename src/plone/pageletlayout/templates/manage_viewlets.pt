@@ -1,0 +1,88 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      i18n:domain="plone.pageletlayout">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title tal:content="view/heading">Manage layout</title>
+  <!-- resource-registry CSS only (no portal chrome, no scripts) so the
+       component classes below render — see manage._StandalonePage. -->
+  <tal:styles replace="structure view/styles" />
+</head>
+<body>
+  <main class="plone-center plone-center--wide"
+        tal:define="base string:${context/absolute_url}/@@${view/view_name}?_authenticator=${view/token};
+                    urls view/preview_urls">
+    <div class="plone-stack" style="--plone-stack-space: var(--plone-space-m)">
+
+      <h1 class="documentFirstHeading" tal:content="view/heading">Layout</h1>
+
+      <p class="documentDescription">
+        Order and visibility for <span tal:replace="view/manages">the manager</span>
+        (<code tal:content="view/manager_name">dotted.name</code>). Changes are
+        written to the shared viewlet storage and take effect on the layout view.
+      </p>
+
+      <p>
+        <a href="${urls/managed}" target="_blank">Preview the layout</a>
+      </p>
+
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th i18n:translate="">Order</th>
+            <th i18n:translate="">Element</th>
+            <th i18n:translate="">State</th>
+            <th i18n:translate="">Move</th>
+            <th i18n:translate="">Visibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr tal:repeat="element view/elements"
+              tal:attributes="data-viewlet element/name;
+                              class python:'text-muted' if element['hidden'] else None">
+            <td tal:content="repeat/element/number">1</td>
+            <td>
+              <strong tal:content="element/label">title</strong>
+              <br />
+              <small class="text-muted" tal:content="element/name">dotted.name</small>
+            </td>
+            <td>
+              <span tal:condition="element/hidden"
+                    class="badge bg-secondary" i18n:translate="">hidden</span>
+              <span tal:condition="not:element/hidden"
+                    class="badge bg-success" i18n:translate="">visible</span>
+            </td>
+            <td>
+              <span class="plone-cluster" style="--plone-cluster-space: var(--plone-space-3xs)">
+                <a tal:condition="not:element/is_first"
+                   class="btn btn-sm btn-outline-secondary"
+                   href="${base}&action=up&viewlet=${element/name}"
+                   title="Move up">&uarr;</a>
+                <a tal:condition="not:element/is_last"
+                   class="btn btn-sm btn-outline-secondary"
+                   href="${base}&action=down&viewlet=${element/name}"
+                   title="Move down">&darr;</a>
+              </span>
+            </td>
+            <td>
+              <a tal:condition="element/hidden"
+                 class="btn btn-sm btn-outline-primary"
+                 href="${base}&action=show&viewlet=${element/name}"
+                 i18n:translate="">show</a>
+              <a tal:condition="not:element/hidden"
+                 class="btn btn-sm btn-outline-warning"
+                 href="${base}&action=hide&viewlet=${element/name}"
+                 i18n:translate="">hide</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </main>
+</body>
+</html>

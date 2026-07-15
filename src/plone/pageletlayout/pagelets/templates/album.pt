@@ -1,0 +1,52 @@
+<div id="content-album"
+     class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="helper view/helper;
+                 images helper/album_images;
+                 albums helper/album_folders;
+                 portal context/@@plone_portal_state/portal;
+                 image_scale portal/@@image_scale">
+
+  <tal:has-items tal:condition="python: images or albums">
+    <div class="entries album">
+
+      <div class="card" tal:repeat="image images">
+        <tal:img tal:define="scale python:image_scale.tag(image, 'image', scale='mini', loading='lazy')">
+          <div class="card-image" tal:condition="scale">
+            <img tal:replace="structure scale" />
+          </div>
+        </tal:img>
+        <div class="card-body">
+          <h2 class="card-title" tal:content="image/Title">Image title</h2>
+          <p class="card-text" tal:content="image/Description">Description</p>
+          <a class="card-link stretched-link"
+             tal:attributes="href string:${image/getURL}/view; title image/Description"
+             i18n:translate="label_view">View</a>
+        </div>
+      </div>
+
+      <div class="card album" tal:repeat="album albums">
+        <tal:img tal:define="scale python:image_scale.tag(album, 'image', scale='mini', loading='lazy') if getattr(album, 'image', None) else None">
+          <div class="card-image" tal:condition="scale">
+            <img tal:replace="structure scale" />
+          </div>
+        </tal:img>
+        <div class="card-body">
+          <h2 class="card-title" tal:content="album/Title">Folder title</h2>
+          <p class="card-text" tal:content="album/Description">Description</p>
+          <a class="card-link stretched-link"
+             tal:attributes="href string:${album/getURL}/view; title album/Description"
+             i18n:translate="label_view">View</a>
+        </div>
+      </div>
+
+    </div>
+  </tal:has-items>
+
+  <p class="discreet"
+     tal:condition="python: not images and not albums"
+     tal:content="helper/no_items_message">There are currently no items in this folder.</p>
+
+</div>

@@ -1,0 +1,136 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       The layout's chrome providers: invisible head plumbing (wrapped,
+       reused) + one chrome pagelet per visible element. Each provider name is
+       the layout's fixed region map; the whole-body manager renders them by
+       name (profiles/default/viewlets.xml order).
+       ====================================================================== -->
+
+  <!-- head plumbing -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.htmltitle"
+      class=".head.HtmlTitleChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.headmeta"
+      class=".head.HeadMetaChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.headlinks"
+      class=".head.HeadLinksChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.styles"
+      class=".head.StylesChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.scripts"
+      class=".head.ScriptsChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- header elements -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.logo"
+      class=".header.LogoChromePagelet"
+      template="templates/logo.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.anontools"
+      class=".header.AnontoolsChromePagelet"
+      template="templates/anontools.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.searchbox"
+      class=".header.SearchboxChromePagelet"
+      template="templates/searchbox.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- global navigation -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.globalnav"
+      class=".globalnav.GlobalnavChromePagelet"
+      template="templates/globalnav.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- breadcrumbs -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.breadcrumbs"
+      class=".breadcrumbs.BreadcrumbsChromePagelet"
+      template="templates/breadcrumbs.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- status messages -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.statusmessages"
+      class=".statusmessages.StatusMessagesChromePagelet"
+      template="templates/statusmessages.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- social-tags body microdata -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.socialtags"
+      class=".socialtags.SocialTagsBodyChromePagelet"
+      template="templates/socialtags.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- content header = title + description merged into one <header>
+       (template-only chrome pagelet). -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.contentheader"
+      template="templates/contentheader.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- byline (wraps the classic DocumentBylineViewlet whole — its own
+       template + self-gating render). -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.byline"
+      class=".byline.BylineChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- the content hole as an element: #content-core (class element-body)
+       around the published pagelet's content template. -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.body"
+      class=".content.BodyChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- footer rows -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.copyright"
+      class=".footer.CopyrightChromePagelet"
+      template="templates/copyright.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.colophon"
+      class=".footer.ColophonChromePagelet"
+      template="templates/colophon.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.siteactions"
+      class=".footer.SiteActionsChromePagelet"
+      template="templates/siteactions.pt"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+</configure>

@@ -1,0 +1,50 @@
+<div class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="image view/image">
+
+  <tal:has-image tal:condition="image">
+    <section class="section-main plone-stack">
+      <figure class="figure">
+        <a href="${view/fullscreen_url}"
+           tal:on-error="string: Image cannot be displayed"
+           tal:content="structure view/image_tag">Image</a>
+      </figure>
+
+      <p class="filename">
+        <a class="download-filename"
+           href="${view/download_url}"
+           tal:content="view/filename">Filename</a>
+      </p>
+
+      <dl class="metadata plone-cluster"
+          style="--plone-cluster-space: var(--plone-space-m)">
+        <div>
+          <dt i18n:translate="image_kind_label">Type</dt>
+          <dd tal:content="view/content_type">image/jpeg</dd>
+        </div>
+        <div>
+          <dt i18n:translate="image_dimension_label">Dimension</dt>
+          <dd tal:content="view/dimension">400x300</dd>
+        </div>
+        <div>
+          <dt i18n:translate="image_size_label">File size</dt>
+          <dd tal:content="view/human_size">1000 kB</dd>
+        </div>
+      </dl>
+    </section>
+
+    <nav class="section-actions plone-cluster">
+      <a class="btn btn-primary download"
+         href="${view/download_url}"
+         i18n:translate="">Download</a>
+      <a class="btn btn-primary fullscreen"
+         href="${view/fullscreen_url}"
+         i18n:translate="label_click_to_view_full_image">View full-size image</a>
+    </nav>
+  </tal:has-image>
+
+  <p tal:condition="not:image"
+     i18n:translate="">There is no image uploaded.</p>
+</div>

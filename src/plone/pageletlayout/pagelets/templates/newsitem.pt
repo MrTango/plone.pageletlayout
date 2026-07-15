@@ -1,0 +1,7 @@
+<section id="section-text"
+         xmlns:tal="http://xml.zope.org/namespaces/tal">
+  <div id="parent-fieldname-text"
+       class="${python: view.toc and 'pat-autotoc' or ''}"
+       tal:condition="view/body"
+       tal:content="structure view/body">Text</div>
+</section>

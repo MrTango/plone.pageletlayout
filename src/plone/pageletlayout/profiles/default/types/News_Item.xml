@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The whole-body pagelet layout is THE default view; the classic view stays
+     addressable (view_methods purge=False). -->
+<object name="News Item" meta_type="Dexterity FTI" purge="False">
+  <property name="default_view">pagelet_view</property>
+  <property name="view_methods" purge="False">
+    <element value="pagelet_view" />
+  </property>
+</object>

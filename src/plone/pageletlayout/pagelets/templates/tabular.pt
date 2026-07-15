@@ -1,0 +1,69 @@
+<div id="content-tabular"
+     class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="helper view/helper;
+                 batch helper/batch;
+                 tabular_fields helper/tabular_fields;
+                 portal context/@@plone_portal_state/portal;
+                 image_scale portal/@@image_scale;
+                 thumb_scale helper/get_thumb_scale_table">
+
+  <tal:has-items tal:condition="batch">
+
+    <div class="table-responsive">
+      <table class="table table-striped"
+             summary="Content listing"
+             i18n:attributes="summary summary_content_listing">
+        <thead>
+          <tr>
+            <th tal:repeat="field tabular_fields"
+                tal:content="python:helper.tabular_field_label(field)">Field name</th>
+            <th tal:condition="thumb_scale" i18n:translate="image">Image</th>
+          </tr>
+        </thead>
+        <tbody>
+         <tal:row tal:repeat="item batch">
+          <tr tal:define="item_url item/getURL;
+                          item_type item/PortalType;
+                          item_link python:(item_url + '/view') if item_type in helper.use_view_action else item_url;
+                          item_title python:item.Title() or item.getId();
+                          item_creator item/Creator;
+                          has_image item/getIcon">
+            <tal:fields tal:repeat="field tabular_fields">
+              <td tal:condition="python:field == 'Title'">
+                <a class="url"
+                   tal:attributes="href item_link; title item_type"
+                   tal:content="item_title">Item Title</a>
+              </td>
+              <td tal:condition="python:field == 'Creator'"
+                  tal:define="author python:helper.pas_member.info(item_creator);
+                              name python:author['fullname'] or author['username']">
+                <a tal:condition="author"
+                   tal:content="name"
+                   tal:attributes="href string:${helper/navigation_root_url}/author/${item_creator}">Author</a>
+              </td>
+              <td tal:condition="python:field not in ('Title', 'Creator')"
+                  tal:content="python:helper.tabular_fielddata(item, field).get('value')">value</td>
+            </tal:fields>
+            <td tal:condition="thumb_scale">
+              <a tal:condition="has_image" tal:attributes="href item_link">
+                <img tal:replace="structure python:image_scale.tag(item, 'image', scale=thumb_scale, css_class='image-responsive thumb-' + thumb_scale, loading='lazy')" />
+              </a>
+            </td>
+          </tr>
+         </tal:row>
+        </tbody>
+      </table>
+    </div>
+
+    <nav metal:use-macro="context/batch_macros/macros/navigation"></nav>
+
+  </tal:has-items>
+
+  <p class="discreet"
+     tal:condition="not:batch"
+     tal:content="helper/no_items_message">There are currently no items in this folder.</p>
+
+</div>

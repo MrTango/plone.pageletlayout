@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registry>
+
+  <!-- plone.pageletlayout is an INTEGRATION package (templates + chrome
+       pagelets), NOT a theme: under the two-package re-role (wayfinder ticket
+       04) it ships NO theme CSS, and under wayfinder ticket 15 it ships NO CSS
+       AT ALL. It registers ZERO bundles.
+
+       The whole layered cascade — the @layer declaration, Bootstrap, the
+       plone-prefixed custom-property tokens, primitives, the bs-to-plone bridge,
+       and the component hooks — lives in plonetheme.clara's single compiled
+       bundle (theme/scss/clara.scss builds clara.min.css). The six former theme
+       bundles (pageletlayout-layers, bootstrap5, pageletlayout-tokens,
+       pageletlayout-primitives, pageletlayout-bridge, pageletlayout-components)
+       left in ticket 04.
+
+       The last CSS the base still shipped — pageletlayout-toolbar, the editor
+       chrome — left in ticket 15: toolbar styling is theme-owned (exactly as
+       stock Plone ships barceloneta-toolbar.min.css inside the Barceloneta
+       *theme*), so its #edit-zone chrome moved into clara.min.css and the base
+       became literally zero-CSS. Any non-Clara consumer (e.g. the eventual
+       plone.app.layout upstream home) ships the editor toolbar unstyled unless
+       it provides its own theme.
+
+       upgrades.py purges every relocated bundle record from already-installed
+       sites (step 1000→1001: the six theme bundles; 1001→1002: the toolbar). -->
+
+</registry>

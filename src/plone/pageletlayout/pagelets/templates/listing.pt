@@ -1,0 +1,66 @@
+<div id="content-listing"
+     class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="helper view/helper;
+                 batch helper/batch;
+                 portal context/@@plone_portal_state/portal;
+                 image_scale portal/@@image_scale;
+                 thumb_scale helper/get_thumb_scale_list;
+                 show_about helper/show_about">
+
+  <tal:has-items tal:condition="batch">
+
+    <div class="entries">
+      <article class="item" tal:repeat="item batch">
+        <div class="plone-sidebar"
+             tal:define="item_url item/getURL;
+                         item_type item/PortalType;
+                         item_link python:(item_url + '/view') if item_type in helper.use_view_action else item_url;
+                         item_title python:item.Title() or item.getId();
+                         item_description item/Description;
+                         item_creator item/Creator;
+                         has_image item/getIcon">
+          <div class="plone-sidebar__main plone-stack">
+            <a class="url"
+               tal:attributes="href item_link; title item_type"
+               tal:content="item_title">Item title</a>
+
+            <p class="documentByline"
+               tal:condition="python: show_about and item_creator"
+               tal:define="author python:helper.pas_member.info(item_creator)">
+              <span i18n:translate="label_by_author">by
+                <a i18n:name="author"
+                   tal:content="python:author.get('name_or_id')"
+                   tal:attributes="href string:${helper/navigation_root_url}/author/${item_creator}">Author</a>
+              </span>
+              <tal:modified>&mdash;
+                <tal:mod i18n:translate="box_last_modified">last modified</tal:mod>
+                <tal:date tal:content="python:helper.toLocalizedTime(item.ModificationDate(), long_format=1)">date</tal:date>
+              </tal:modified>
+            </p>
+
+            <p class="description"
+               tal:condition="item_description"
+               tal:content="item_description">Item description</p>
+          </div>
+
+          <a class="plone-sidebar__aside"
+             tal:condition="python: has_image and thumb_scale"
+             tal:attributes="href item_link">
+            <img tal:replace="structure python:image_scale.tag(item, 'image', scale=thumb_scale, css_class='image-responsive thumb-' + thumb_scale, loading='lazy')" />
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <nav metal:use-macro="context/batch_macros/macros/navigation"></nav>
+
+  </tal:has-items>
+
+  <p class="discreet"
+     tal:condition="not:batch"
+     tal:content="helper/no_items_message">There are currently no items in this folder.</p>
+
+</div>

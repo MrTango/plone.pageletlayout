@@ -1,0 +1,13 @@
+<nav class="site-actions element-siteactions"
+     aria-label="Site actions"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     i18n:attributes="aria-label"
+     i18n:domain="plone">
+  <ul class="plone-cluster actions-site_actions">
+    <li class="action-item-${action/id}"
+        tal:repeat="action view/site_actions">
+      <a tal:attributes="href action/href; target action/target"
+         tal:content="action/title">Action</a>
+    </li>
+  </ul>
+</nav>

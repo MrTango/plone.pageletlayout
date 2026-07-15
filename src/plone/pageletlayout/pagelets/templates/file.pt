@@ -1,0 +1,53 @@
+<div class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="file view/file">
+
+  <tal:has-file tal:condition="file">
+    <section class="section-main plone-stack"
+             style="--plone-stack-space: var(--plone-space-s)">
+
+      <video class="section-media"
+             controls="controls"
+             tal:condition="view/helper/is_videotype">
+        <source src="${view/download_url}"
+                type="${view/content_type}" />
+      </video>
+
+      <audio class="section-media"
+             controls="controls"
+             tal:condition="view/helper/is_audiotype">
+        <source src="${view/download_url}"
+                type="${view/content_type}" />
+      </audio>
+
+      <p class="filename">
+        <a class="download-filename"
+           href="${view/download_url}"
+           tal:content="view/filename">Filename</a>
+      </p>
+
+      <dl class="metadata plone-cluster"
+          style="--plone-cluster-space: var(--plone-space-m)">
+        <div>
+          <dt i18n:translate="">Content type</dt>
+          <dd tal:content="view/content_type">image/jpeg</dd>
+        </div>
+        <div>
+          <dt i18n:translate="">Size</dt>
+          <dd tal:content="view/helper/human_readable_size">1000 kB</dd>
+        </div>
+      </dl>
+    </section>
+
+    <nav class="section-actions plone-cluster">
+      <a class="btn btn-primary download"
+         href="${view/download_url}"
+         i18n:translate="">Download</a>
+    </nav>
+  </tal:has-file>
+
+  <p tal:condition="not:file"
+     i18n:translate="">There is no file uploaded.</p>
+</div>

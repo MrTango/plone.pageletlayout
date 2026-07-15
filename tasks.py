@@ -1,4 +1,4 @@
-"""Invoke tasks for plonetheme.pageletbase."""
+"""Invoke tasks for plone.pageletlayout."""
 from invoke import task
 
 

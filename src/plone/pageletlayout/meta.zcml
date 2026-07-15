@@ -1,0 +1,37 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:meta="http://namespaces.zope.org/meta">
+
+  <meta:directives namespace="http://namespaces.plone.org/plone">
+
+    <!-- Five-compatible pagelet registration; schema reused from z3c.pagelet -->
+    <meta:directive
+        name="pagelet"
+        schema="z3c.pagelet.zcml.IPageletDirective"
+        handler=".metaconfigure.pageletDirective"
+        />
+
+    <!-- Chrome pagelet: named IContentProvider + content template in one
+         registration; rendered from layouts via provider:<name>. -->
+    <meta:directive
+        name="chromepagelet"
+        schema=".metadirectives.IChromePageletDirective"
+        handler=".metaconfigure.chromePageletDirective"
+        />
+
+    <!-- Like z3c:template / z3c:layout, but rendering through Zope's own
+         (Five) template engine so provider: et al. work; schemas reused. -->
+    <meta:directive
+        name="template"
+        schema="z3c.template.zcml.ITemplateDirective"
+        handler=".metaconfigure.templateDirective"
+        />
+    <meta:directive
+        name="layout"
+        schema="z3c.template.zcml.ILayoutTemplateDirective"
+        handler=".metaconfigure.layoutTemplateDirective"
+        />
+
+  </meta:directives>
+
+</configure>

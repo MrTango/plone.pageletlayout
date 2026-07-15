@@ -1,0 +1,25 @@
+<nav id="portal-breadcrumbs"
+     class="element-breadcrumbs"
+     aria-label="breadcrumb"
+     i18n:attributes="aria-label"
+     i18n:domain="plone">
+  <!-- No inner .container: .plone-layout already places this on the content
+       column (§10 cleanup — the redundant centering wrapper was removed). -->
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a tal:attributes="href view/navigation_root_url"
+         i18n:translate="tabs_home">Home</a>
+    </li>
+    <tal:loop tal:repeat="crumb view/breadcrumbs">
+      <li class="breadcrumb-item"
+          tal:condition="not: repeat/crumb/end">
+        <a tal:attributes="href crumb/absolute_url"
+           tal:content="crumb/Title">crumb</a>
+      </li>
+      <li class="breadcrumb-item active"
+          aria-current="page"
+          tal:condition="repeat/crumb/end"
+          tal:content="crumb/Title">current page</li>
+    </tal:loop>
+  </ol>
+</nav>

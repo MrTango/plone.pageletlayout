@@ -1,0 +1,38 @@
+<div id="content-full"
+     class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="helper view/helper;
+                 batch helper/batch;
+                 entries view/full_entries">
+
+  <tal:has-items tal:condition="entries">
+
+    <div class="entries">
+      <article class="item" tal:repeat="entry entries">
+        <h2>
+          <a class="summary url"
+             tal:attributes="href entry/url"
+             tal:content="entry/title">Item title</a>
+        </h2>
+
+        <p class="description"
+           tal:condition="entry/description"
+           tal:content="entry/description">Item description</p>
+
+        <div class="element-body"
+             tal:condition="entry/body"
+             tal:content="structure entry/body">Item body</div>
+      </article>
+    </div>
+
+    <nav metal:use-macro="context/batch_macros/macros/navigation"></nav>
+
+  </tal:has-items>
+
+  <p class="discreet"
+     tal:condition="not:entries"
+     tal:content="helper/no_items_message">There are currently no items in this folder.</p>
+
+</div>

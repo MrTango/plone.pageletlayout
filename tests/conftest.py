@@ -1,8 +1,8 @@
-"""Pytest configuration for plonetheme.pageletbase tests."""
+"""Pytest configuration for plone.pageletlayout tests."""
 from pytest_plone import fixtures_factory
 
-from plonetheme.pageletbase.testing import FUNCTIONAL_TESTING
-from plonetheme.pageletbase.testing import INTEGRATION_TESTING
+from plone.pageletlayout.testing import FUNCTIONAL_TESTING
+from plone.pageletlayout.testing import INTEGRATION_TESTING
 
 
 globals().update(

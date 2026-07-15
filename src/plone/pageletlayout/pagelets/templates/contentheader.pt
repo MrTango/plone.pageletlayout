@@ -1,0 +1,8 @@
+<header class="element-contentheader" i18n:domain="plone">
+  <h1 class="documentFirstHeading"
+      tal:content="view/context/Title">context title</h1>
+  <p class="documentDescription"
+     tal:define="description view/context/Description"
+     tal:condition="description"
+     tal:content="description">context description</p>
+</header>

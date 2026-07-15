@@ -1,0 +1,15 @@
+<nav tal:condition="view/navtree"
+     id="portal-globalnav-wrapper"
+     class="element-globalnav"
+     aria-label="Site"
+     i18n:attributes="aria-label"
+     i18n:domain="plone">
+  <!-- The outer ul is ours; its children come from the reused
+       GlobalSectionsViewlet (Plone markup travels with the reused element).
+       The Cluster primitive lays the top-level sections out horizontally with
+       a token gap; a theme's mega-menu CSS restyles this into a dropdown bar
+       over the native .has_subtree markup (no utility classes here). -->
+  <ul class="plone-cluster" id="portal-globalnav">
+    <navtree tal:replace="structure python:view.render_globalnav()"></navtree>
+  </ul>
+</nav>

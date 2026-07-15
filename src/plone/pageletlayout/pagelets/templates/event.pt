@@ -1,0 +1,17 @@
+<article class="event plone-stack"
+         itemscope="itemscope"
+         itemtype="https://schema.org/Event"
+         xmlns:tal="http://xml.zope.org/namespaces/tal"
+         xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+         i18n:domain="plone"
+         tal:define="data nocall:view/data">
+
+  <!-- The stock event summary (dates, location, calendar links): reused
+       verbatim, Plone's own hook, never re-implemented. -->
+  <tal:eventsummary replace="structure context/@@event_summary" />
+
+  <div id="parent-fieldname-text"
+       class="plone-stack"
+       tal:condition="data/text"
+       tal:content="structure data/text">Text</div>
+</article>

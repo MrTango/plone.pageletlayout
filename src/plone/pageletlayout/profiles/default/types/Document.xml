@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The whole-body layout is THE default view; classic document_view stays
+     addressable too (view_methods purge=False). -->
+<object name="Document" meta_type="Dexterity FTI" purge="False">
+  <property name="default_view">pagelet_view</property>
+  <property name="view_methods" purge="False">
+    <element value="pagelet_view" />
+  </property>
+</object>

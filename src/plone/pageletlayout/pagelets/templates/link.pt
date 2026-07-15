@@ -1,0 +1,23 @@
+<section class="section-main plone-stack"
+         xmlns:tal="http://xml.zope.org/namespaces/tal"
+         xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+         i18n:domain="plone"
+         tal:define="display view/display">
+
+  <p class="link-title">
+    <a class="url"
+       href="${view/target_url}"
+       tal:content="display/title">remote url</a>
+  </p>
+
+  <div class="metadata"
+       tal:condition="display/meta"
+       tal:content="display/meta">/path/to/target</div>
+
+  <p class="info-redirect"
+     tal:condition="python: view.redirect_links and view.can_edit"
+     i18n:translate="message_permissions_blocking_link_redirect">
+    You see this page because you have permission to edit this link.
+    Others will be immediately redirected to the link's target URL.
+  </p>
+</section>

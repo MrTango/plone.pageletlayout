@@ -1,0 +1,15 @@
+<nav id="portal-anontools" class="element-anontools"
+     aria-label="Personal tools"
+     i18n:attributes="aria-label"
+     i18n:domain="plone">
+  <ul class="plone-cluster">
+    <li tal:repeat="action view/user_actions">
+      <a href=""
+         tal:content="action/title"
+         tal:attributes="href action/href;
+                         id action/id;
+                         target action/target"
+         i18n:translate="">action title</a>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,86 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <i18n:registerTranslations directory="locales" />
+
+  <include file="permissions.zcml" />
+
+  <!-- z3c pagelet stack: directives, then the PageletRenderer (provider:pagelet).
+       Our meta.zcml adds the Five-compatible plone: directives (pagelet,
+       chromepagelet, template, layout) on top. -->
+  <include package="z3c.template" file="meta.zcml" />
+  <include package="z3c.pagelet" file="meta.zcml" />
+  <include package="z3c.pagelet" />
+  <include file="meta.zcml" />
+
+  <include package=".pagelets" />
+
+  <!-- No <browser:resourceDirectory>: plone.pageletlayout ships ZERO CSS
+       (wayfinder ticket 15). The layered theme cascade lives in
+       plonetheme.clara's compiled clara.min.css; the editor-toolbar chrome that
+       was the base's last vendored asset moved there too (theme-owned, as in
+       Barceloneta). Nothing is served under ++resource++plone.pageletlayout/
+       any more, so the static/ directory and its registration are gone. -->
+
+  <!-- Custom manage-viewlets screens for the pagelet-only manager (stock
+       @@manage-viewlets can't list it). Admin screens, self-contained pages. -->
+  <browser:page
+      name="manage-layout-viewlets"
+      for="*"
+      class=".manage.LayoutManageView"
+      template="templates/manage_viewlets.pt"
+      permission="cmf.ManagePortal"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <genericsetup:registerProfile
+      name="default"
+      title="Plonetheme Pagelet Base"
+      description="A Plone theme base for themes based on pagelets"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      directory="profiles/default"
+      />
+
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="Plonetheme Pagelet Base (uninstall)"
+      description="Uninstalls plone.pageletlayout"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      directory="profiles/uninstall"
+      />
+
+  <genericsetup:importStep
+      name="plone.pageletlayout-uninstall"
+      title="Plonetheme Pagelet Base uninstall"
+      description="Uninstall plone.pageletlayout"
+      handler="plone.pageletlayout.setuphandlers.uninstall"
+      />
+
+  <!-- Wayfinder ticket 04: the six theme-CSS bundles moved into
+       plonetheme.clara's one compiled bundle. Purge them from installed sites. -->
+  <genericsetup:upgradeStep
+      source="1000"
+      destination="1001"
+      title="Remove the relocated theme-CSS bundles (now in plonetheme.clara)"
+      description="plone.pageletlayout is CSS-less; purge the six former bundle records."
+      profile="plone.pageletlayout:default"
+      handler="plone.pageletlayout.upgrades.remove_theme_css_bundles"
+      />
+
+  <!-- Wayfinder ticket 15: the editor-toolbar chrome bundle moved into
+       plonetheme.clara too (theme-owned). Purge it so the base is zero-CSS. -->
+  <genericsetup:upgradeStep
+      source="1001"
+      destination="1002"
+      title="Remove the editor-toolbar chrome bundle (now in plonetheme.clara)"
+      description="plone.pageletlayout ships zero CSS; purge pageletlayout-toolbar."
+      profile="plone.pageletlayout:default"
+      handler="plone.pageletlayout.upgrades.remove_toolbar_bundle"
+      />
+
+</configure>

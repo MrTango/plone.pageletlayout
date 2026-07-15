@@ -1,19 +1,46 @@
 # Plonetheme Pagelet Base
 
-A Plone theme base for themes based on pagelets
+The rendering base for pagelet-based Plone Blicca (Classic UI) themes. It owns
+the **machinery** and the **markup contract**; a theme (e.g. `plonetheme.clara`)
+supplies the look through CSS tokens.
+
+## What it ships
+
+- **The pagelet layout stack** — the Five-compatible `plone:pagelet` /
+  `plone:chromepagelet` / `plone:template` / `plone:layout` ZCML directives, and
+  a single whole-body `OrderedViewletManager` (`plone.pageletlayout.layout`)
+  holding a flat list of ~13 element pagelets (logo, nav, breadcrumbs,
+  contentheader, body, footer, …). Order and visibility come from
+  `IViewletSettingsStorage`.
+- **Two published views per type** — `pagelet_view` (managed: reorder/hide via
+  the storage) and `pagelet_view_flat` (fixed code order), sharing one shell.
+  The FTI default flips to `pagelet_view`.
+- **Management screens** — `@@manage-layout-viewlets` (reorder + hide/show) and
+  `@@manage-layout-viewlets-flat` (inspection-only).
+- **The markup contract + layout primitives** — semantic templates with stable
+  `.element-*` / `.plone-*` hooks, cascade layers, layout primitives (Stack,
+  Cluster, Sidebar, Switcher, Grid, Center), default `--plone-*` tokens, and the
+  Bootstrap `--bs-*` → `--plone-*` bridge. See
+  [Clara's theming architecture](../plonetheme.clara/docs/clara-theming-architecture.md)
+  for the full contract — this base implements it.
+
+Chrome computation is **reused, not forked**: the global sections, breadcrumbs,
+byline, status messages and head plumbing wrap the stock `plone.app.layout`
+viewlets/helpers, so upstream fixes still arrive.
 
 ## Features
 
 - Compatible with Plone 6.2+
+- Un-themed, single-column, whole-body layout (no Diazo, no Barceloneta skeleton)
 
 ## Installation
 
-Add `plonetheme.pageletbase` to your project's dependencies:
+Add `plone.pageletlayout` to your project's dependencies:
 
 ```python
 # In your pyproject.toml
 dependencies = [
-    "plonetheme.pageletbase",
+    "plone.pageletlayout",
     # ...
 ]
 ```
@@ -26,8 +53,8 @@ Then activate the addon in your Plone site's control panel or via GenericSetup.
 
 ```bash
 # Clone the repository
-git clone https://github.com/collective/plonetheme.pageletbase.git
-cd plonetheme.pageletbase
+git clone https://github.com/collective/plone.pageletlayout.git
+cd plone.pageletlayout
 
 # Create virtual environment
 python -m venv venv
@@ -46,7 +73,7 @@ pytest
 ### Running Tests with Coverage
 
 ```bash
-pytest --cov=plonetheme.pageletbase --cov-report=html
+pytest --cov=plone.pageletlayout --cov-report=html
 ```
 
 ## License

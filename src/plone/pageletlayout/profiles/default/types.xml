@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object name="portal_types" meta_type="Plone Types Tool">
+  <object name="Document" meta_type="Dexterity FTI" />
+  <object name="Plone Site" meta_type="Dexterity FTI" />
+  <object name="News Item" meta_type="Dexterity FTI" />
+  <object name="Event" meta_type="Dexterity FTI" />
+  <object name="File" meta_type="Dexterity FTI" />
+  <object name="Image" meta_type="Dexterity FTI" />
+  <object name="Link" meta_type="Dexterity FTI" />
+</object>

@@ -1,0 +1,10 @@
+<span id="social-tags-body"
+      class="element-socialtags"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      itemscope
+      itemtype="http://schema.org/WebPage"
+      hidden="hidden">
+  <span tal:repeat="tag view/body_tags"
+        tal:content="tag/content|nothing"
+        tal:attributes="itemprop tag/itemprop|nothing"></span>
+</span>

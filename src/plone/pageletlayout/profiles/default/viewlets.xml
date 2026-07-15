@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object>
+  <!-- The whole-body manager's default order = the canonical top-to-bottom
+       page order (layout.py ELEMENTS). This is what the layout renders and
+       what @@manage-layout-viewlets and a future drag&drop UI edit. Equality
+       with ELEMENTS is what the parity test pins. -->
+  <order manager="plone.pageletlayout.layout" skinname="Plone Default">
+    <viewlet name="plone.pageletlayout.logo" />
+    <viewlet name="plone.pageletlayout.anontools" />
+    <viewlet name="plone.pageletlayout.globalnav" />
+    <viewlet name="plone.pageletlayout.searchbox" />
+    <viewlet name="plone.pageletlayout.breadcrumbs" />
+    <viewlet name="plone.pageletlayout.statusmessages" />
+    <viewlet name="plone.pageletlayout.socialtags" />
+    <viewlet name="plone.pageletlayout.contentheader" />
+    <viewlet name="plone.pageletlayout.byline" />
+    <viewlet name="plone.pageletlayout.body" />
+    <viewlet name="plone.pageletlayout.copyright" />
+    <viewlet name="plone.pageletlayout.colophon" />
+    <viewlet name="plone.pageletlayout.siteactions" />
+  </order>
+</object>
