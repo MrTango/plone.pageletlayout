@@ -36,16 +36,22 @@ PUBLISH_ATTRIBUTES = ("__call__", "browserDefault", "update", "render", "publish
 
 def pageletDirective(
     _context,
-    class_,
     name,
     permission,
-    for_=zope.interface.Interface,
+    class_=None,
+    template=None,
+    for_=None,
     layer=IDefaultBrowserLayer,
     provides=interfaces.IPagelet,
     allowed_interface=None,
     allowed_attributes=None,
     **kwargs,
 ):
+    if class_ is None and template is None:
+        raise ConfigurationError("plone:pagelet needs 'class' and/or 'template'.")
+    if for_ is None:
+        for_ = (zope.interface.Interface,)
+
     permission = viewmeta._handle_permission(_context, permission)
 
     ifaces = list(zope.interface.Declaration(provides).flattened())
@@ -56,10 +62,15 @@ def pageletDirective(
     # AccessControl declarations (ClassSecurityInfo), like Five's page().
     # PageletPage instead of plain BrowserPagelet: every published pagelet
     # gets the response headers + post-render Diazo bypass (ticket 07).
+    # Template-only: synthesize the class (gocept.pagelet's SimplePagelet
+    # idea) — on PageletPage, never plain object, for the same contract.
     cdict = {"__name__": name}
     cdict.update(kwargs)
-    cdict.update(getSecurityInfo(class_))
-    new_class = type(class_.__name__, (class_, PageletPage), cdict)
+    if class_ is None:
+        new_class = type(f"SimplePagelet from {template}", (PageletPage,), cdict)
+    else:
+        cdict.update(getSecurityInfo(class_))
+        new_class = type(class_.__name__, (class_, PageletPage), cdict)
 
     if not provides.implementedBy(new_class):
         zope.interface.classImplements(new_class, provides)
@@ -72,16 +83,26 @@ def pageletDirective(
     viewmeta._handle_allowed_attributes(_context, allowed_attributes, permission, required)
     viewmeta._handle_allowed_attributes(_context, kwargs.keys(), permission, required)
 
-    viewmeta._handle_for(_context, for_)
-
     # The bridge: Zope 2 / AccessControl security instead of zope.security.
     _configure_z2security(_context, new_class, required)
 
-    _context.action(
-        discriminator=("pagelet", for_, layer, name),
-        callable=zope.component.zcml.handler,
-        args=("registerAdapter", new_class, (for_, layer), provides, name, _context.info),
-    )
+    # One action per context interface, so conflict detection stays
+    # per-interface (a second stanza claiming the same name for one of
+    # them on the same layer must conflict, not silently override).
+    for iface in for_:
+        viewmeta._handle_for(_context, iface)
+        _context.action(
+            discriminator=("pagelet", iface, layer, name),
+            callable=zope.component.zcml.handler,
+            args=("registerAdapter", new_class, (iface, layer), provides, name, _context.info),
+        )
+
+    if template is not None:
+        # One-stroke content template. Bound to the user's class when there
+        # is one, so any further subclass — e.g. a second registration of
+        # the same class — inherits it (the chromepagelet subtlety).
+        template_for = class_ if class_ is not None else new_class
+        templateDirective(_context, template, for_=template_for, layer=layer)
 
 
 def chromePageletDirective(
@@ -89,7 +110,7 @@ def chromePageletDirective(
     name,
     class_=None,
     template=None,
-    for_=zope.interface.Interface,
+    for_=None,
     layer=IDefaultBrowserLayer,
     view=IBrowserView,
 ):
@@ -110,24 +131,29 @@ def chromePageletDirective(
         raise ConfigurationError(
             "plone:chromepagelet needs 'class' and/or 'template'."
         )
+    if for_ is None:
+        for_ = (zope.interface.Interface,)
 
     bases = () if class_ is None else (class_,)
     if class_ is None or not issubclass(class_, ChromePagelet):
         bases += (ChromePagelet,)
     new_class = type(bases[0].__name__, bases, {"__name__": name})
 
-    _context.action(
-        discriminator=("chromePagelet", for_, layer, view, name),
-        callable=zope.component.zcml.handler,
-        args=(
-            "registerAdapter",
-            new_class,
-            (for_, layer, view),
-            IContentProvider,
-            name,
-            _context.info,
-        ),
-    )
+    # One action per context interface — per-interface conflict detection,
+    # same rule as plone:pagelet.
+    for iface in for_:
+        _context.action(
+            discriminator=("chromePagelet", iface, layer, view, name),
+            callable=zope.component.zcml.handler,
+            args=(
+                "registerAdapter",
+                new_class,
+                (iface, layer, view),
+                IContentProvider,
+                name,
+                _context.info,
+            ),
+        )
 
     if template is not None:
         template_for = class_ if class_ is not None else new_class
@@ -163,7 +189,12 @@ def templateDirective(
     context=None,
 ):
     # Same registration semantics as z3c.template.zcml.templateDirective,
-    # different factory.
+    # different factory — and Tokens for_: one adapter registration per
+    # interface/class. Programmatic callers (the pagelet directives' inline
+    # template=) pass a single class; normalize.
+    if not isinstance(for_, (list, tuple)):
+        for_ = (for_,)
+
     template = os.path.abspath(str(_context.path(template)))
     if not os.path.isfile(template):
         raise ConfigurationError("No such file", template)
@@ -171,15 +202,9 @@ def templateDirective(
     factory = FiveTemplateFactory(template, contentType, macro)
     zope.interface.directlyProvides(factory, provides)
 
-    if context is not None:
-        for_ = (for_, layer, context)
-    else:
-        for_ = (for_, layer)
-
-    if name:
-        zope.component.zcml.adapter(_context, (factory,), provides, for_, name=name)
-    else:
-        zope.component.zcml.adapter(_context, (factory,), provides, for_)
+    for iface in for_:
+        required = (iface, layer, context) if context is not None else (iface, layer)
+        zope.component.zcml.adapter(_context, (factory,), provides, required, name=name)
 
 
 def layoutTemplateDirective(

@@ -4,10 +4,11 @@
 
   <meta:directives namespace="http://namespaces.plone.org/plone">
 
-    <!-- Five-compatible pagelet registration; schema reused from z3c.pagelet -->
+    <!-- Five-compatible pagelet registration. Optional class, inline
+         template=, multi-interface for= (gocept.pagelet prior art). -->
     <meta:directive
         name="pagelet"
-        schema="z3c.pagelet.zcml.IPageletDirective"
+        schema=".metadirectives.IPageletDirective"
         handler=".metaconfigure.pageletDirective"
         />
 
@@ -20,15 +21,16 @@
         />
 
     <!-- Like z3c:template / z3c:layout, but rendering through Zope's own
-         (Five) template engine so provider: et al. work; schemas reused. -->
+         (Five) template engine so provider: et al. work, and with
+         multi-interface for=. -->
     <meta:directive
         name="template"
-        schema="z3c.template.zcml.ITemplateDirective"
+        schema=".metadirectives.ITemplateDirective"
         handler=".metaconfigure.templateDirective"
         />
     <meta:directive
         name="layout"
-        schema="z3c.template.zcml.ILayoutTemplateDirective"
+        schema=".metadirectives.ILayoutTemplateDirective"
         handler=".metaconfigure.layoutTemplateDirective"
         />
 
