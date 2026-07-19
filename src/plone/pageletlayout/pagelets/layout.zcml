@@ -188,7 +188,34 @@
       permission="zope2.View"
       />
 
-  <!-- The shared shell: ONE layout template for all eleven published
+  <!-- ======================================================================
+       folder_contents: the pattern-driven management UI as a FULL-SCREEN
+       pagelet (the docs/directives.md recipe, shipped). The stanza's
+       provides= puts the IFullScreenPagelet marker on the published view;
+       the second stanza shadows the page-region provider for exactly that
+       marker — body only, head plumbing and toolbar stay. Shadows the stock
+       browser:page (plone.app.content) on our layer; for= is the stock
+       registration's own IFolderish, so the site root is covered too.
+       ====================================================================== -->
+  <plone:pagelet
+      name="folder_contents"
+      class=".layout.LayoutFolderContentsPagelet"
+      template="templates/folder_contents.pt"
+      provides="plone.pageletlayout.interfaces.IFullScreenPagelet"
+      for="Products.CMFCore.interfaces._content.IFolderish"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.ListFolderContents"
+      />
+
+  <!-- On views providing the marker, the page region is body-only. -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.pagelayout"
+      class=".layout.BodyOnlyRegion"
+      view="plone.pageletlayout.interfaces.IFullScreenPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- The shared shell: ONE layout template for all twelve published
        pagelets. Registered standalone (there is deliberately no inline
        layout= — the frame is the site's to provide, not the pagelet's to
        declare); the body-only content templates ride inline on the pagelet
@@ -205,7 +232,8 @@
            .layout.LayoutSummaryPagelet
            .layout.LayoutTabularPagelet
            .layout.LayoutFullPagelet
-           .layout.LayoutAlbumPagelet"
+           .layout.LayoutAlbumPagelet
+           .layout.LayoutFolderContentsPagelet"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
 

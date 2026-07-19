@@ -29,6 +29,7 @@ from plone.pageletlayout.pagelets.content import AlbumPagelet
 from plone.pageletlayout.pagelets.content import DocumentPagelet
 from plone.pageletlayout.pagelets.content import EventPagelet
 from plone.pageletlayout.pagelets.content import FilePagelet
+from plone.pageletlayout.pagelets.content import FolderContentsPagelet
 from plone.pageletlayout.pagelets.content import FullPagelet
 from plone.pageletlayout.pagelets.content import ImagePagelet
 from plone.pageletlayout.pagelets.content import LinkPagelet
@@ -130,6 +131,26 @@ class ManagedLayoutRegionChromePagelet(ChromePagelet):
         return manager.render()
 
 
+class BodyOnlyRegion(ChromePagelet):
+    """The page region on full-screen views (IFullScreenPagelet): just the
+    body element — no logo, nav, breadcrumbs or footer; the ``<head>``
+    plumbing and the toolbar stay with the shell. Registered under the same
+    provider name with ``view=`` the marker, so adapter specificity picks it
+    on full-screen views and the managed region everywhere else (the recipe
+    in docs/directives.md). A class, not a template: the body provider must
+    be looked up with ``self.view``, the published pagelet (the
+    BodyChromePagelet lesson)."""
+
+    def render(self):
+        provider = getMultiAdapter(
+            (self.context, self.request, self.view),
+            IContentProvider,
+            name="plone.pageletlayout.body",
+        )
+        provider.update()
+        return provider.render()
+
+
 class _UnthemedMixin:
     """Pre-render theme-off: disable the theme from the start so StylesView
     omits barceloneta.min.css (the theme production-css, not a registry
@@ -188,3 +209,9 @@ class LayoutFullPagelet(_UnthemedMixin, FullPagelet):
 
 class LayoutAlbumPagelet(_UnthemedMixin, AlbumPagelet):
     """Folderish ``album_view``, whole-body layout."""
+
+
+class LayoutFolderContentsPagelet(_UnthemedMixin, FolderContentsPagelet):
+    """``folder_contents``, whole-body layout — published full-screen: the
+    registration's ``provides=IFullScreenPagelet`` flips the page region to
+    ``BodyOnlyRegion``."""

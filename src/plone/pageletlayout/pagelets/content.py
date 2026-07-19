@@ -13,6 +13,8 @@ from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.contentprovider.interfaces import IContentProvider
 
+from plone.app.content.browser.contents import FolderContentsView
+from plone.app.content.utils import json_dumps
 from plone.app.contenttypes.behaviors.collection import ISyndicatableCollection
 from plone.app.contenttypes.browser.collection import CollectionView
 from plone.app.contenttypes.browser.folder import FolderView
@@ -223,3 +225,23 @@ class FullPagelet(FolderishListingPagelet):
             return provider.render()
         except Exception:
             return None
+
+
+# ---------------------------------------------------------------------------
+# Management views: the pattern-driven screens that classically render through
+# main_template. folder_contents is the first — a full-screen pagelet (the
+# docs/directives.md recipe, shipped): body-only region, head plumbing and
+# toolbar stay.
+# ---------------------------------------------------------------------------
+
+
+class FolderContentsPagelet(BrowserPagelet):
+    """folder_contents core: the CSRF authenticator token + the
+    ``pat-structure`` div that boots the management UI. The options JSON
+    DELEGATES to the stock ``FolderContentsView`` — all the vocabulary /
+    column / index / upload plumbing stays upstream (wrap, don't
+    re-implement — [[feedback-reuse-over-reimplement]])."""
+
+    def update(self):
+        helper = FolderContentsView(self.context, self.request)
+        self.options = json_dumps(helper.get_options())

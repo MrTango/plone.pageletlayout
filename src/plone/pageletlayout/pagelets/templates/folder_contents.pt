@@ -1,0 +1,7 @@
+<div id="content-folder-contents"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     i18n:domain="plone">
+  <span tal:replace="structure context/@@authenticator/authenticator" />
+  <div class="pat-structure"
+       tal:attributes="data-pat-structure view/options"></div>
+</div>

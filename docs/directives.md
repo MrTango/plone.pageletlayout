@@ -332,6 +332,17 @@ motivating case: a pattern-driven management UI that needs the site's
 footer. The `view=` dimension does this with two stanzas and no changes to
 the shipped layout.
 
+**The package now ships this recipe**: `folder_contents` itself is published
+as a full-screen pagelet (`FolderContentsPagelet` in `pagelets/content.py`,
+`LayoutFolderContentsPagelet` + `BodyOnlyRegion` in `pagelets/layout.py`,
+wired in `pagelets/layout.zcml`). Because the marker
+(`plone.pageletlayout.interfaces.IFullScreenPagelet`) and the body-only
+region shadow are registered once, in-package, a consumer needs only the
+*first* stanza below — a `plone:pagelet` with
+`provides="plone.pageletlayout.interfaces.IFullScreenPagelet"` — to get a
+full-screen page. The walkthrough keeps both stanzas to show the whole
+mechanism (and how to build a different region variant of your own).
+
 The shipped page region is a single provider point: `layout.pt` renders
 `provider:plone.pageletlayout.pagelayout`, registered for `view=IBrowserView`
 (all published views). The recipe: mark your full-screen pagelet with a
