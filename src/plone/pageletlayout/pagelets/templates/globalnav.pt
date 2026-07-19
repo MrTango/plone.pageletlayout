@@ -4,6 +4,17 @@
      aria-label="Site"
      i18n:attributes="aria-label"
      i18n:domain="plone">
+  <!-- Nav-level disclosure: the same native pure-CSS .opener idiom the
+       per-section toggles inside the tree already use. A theme that collapses
+       the bar on narrow viewports drives it from CSS alone (label becomes the
+       menu button, `.opener:not(:checked) ~ ul` hides the list); a theme that
+       never collapses simply keeps both display:none. -->
+  <input class="opener"
+         type="checkbox"
+         id="portal-globalnav-opener" />
+  <label class="globalnav-toggle"
+         for="portal-globalnav-opener"
+         i18n:translate="">Menu</label>
   <!-- The outer ul is ours; its children come from the reused
        GlobalSectionsViewlet (Plone markup travels with the reused element).
        The Cluster primitive lays the top-level sections out horizontally with
