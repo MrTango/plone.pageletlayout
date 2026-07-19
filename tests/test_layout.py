@@ -43,6 +43,8 @@ class TestLayoutRender(unittest.TestCase):
         # markup-contract hooks (§9)
         self.assertIn('class="plone-layout"', html)
         self.assertIn("element-contentheader", html)
+        self.assertIn('class="plone-site-title"', html)
+        self.assertRegex(html, r'<img alt=""[^>]+plone-logo\.svg')
         self.assertIn("documentFirstHeading", html)
         self.assertIn('id="content-core"', html)
         self.assertIn("element-body", html)
