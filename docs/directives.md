@@ -1,6 +1,6 @@
 # The directive grammar
 
-`plone.pageletlayout` ships four ZCML directives — the vocabulary a developer
+`plone.pageletlayout` ships five ZCML directives — the vocabulary a developer
 uses to register pagelet-based pages and their chrome:
 
 | Directive | Registers | Traversed? |
@@ -9,6 +9,7 @@ uses to register pagelet-based pages and their chrome:
 | `plone:chromepagelet` | a named `IContentProvider` (a chrome element), plus its content template in one stroke | no — rendered via `provider:<name>` |
 | `plone:template` | a standalone `IContentTemplate` adapter | — |
 | `plone:layout` | a standalone `ILayoutTemplate` adapter | — |
+| `plone:pagelayout` | a layout-registry entry (`IPageLayout` named utility) binding a layout name to its layout layer | no — selected via `?pagelet_layout=<name>` |
 
 All examples in this document are lifted from the package's own ZCML
 (`pagelets/layout.zcml`, `pagelets/chrome.zcml`) — the package is registered
@@ -41,7 +42,7 @@ packages is the ecosystem convention — `plone:behavior` (plone.behavior),
 `plone:static` (plone.resource), `plone:service` (plone.rest),
 `plone:portlet` (plone.app.portlets) all do the same; no Plone package ships
 its own namespace URI. ZCML collisions are per directive *name*, and none of
-the four names is taken. The namespace names the project; the directive name
+the five names is taken. The namespace names the project; the directive name
 carries the domain.
 
 ## `plone:pagelet`
@@ -184,12 +185,51 @@ across classes**. The package's own shell is the canonical example — one
 Note the `for` caveat: on these two directives `for` is usually a **view
 class**, not a context interface — the template is an adapter on
 `(view, request)`. The doc-wide rule "one or more interfaces or classes the
-adapter is registered for" reads correctly for all four directives;
+adapter is registered for" reads correctly for all four adapter directives;
 "context interface" would not.
+
+## `plone:pagelayout`
+
+Declare a named page layout: one layout-registry entry — an `IPageLayout`
+named utility, utility name = layout name. The directive *binds* a
+hand-written layout layer, it never mints one; the full model (trigger
+chain, shipped layouts, caching) is
+[request-layouts.md](request-layouts.md).
+
+```xml
+<plone:pagelayout
+    name="fullscreen"
+    layer="plone.pageletlayout.interfaces.IFullscreenLayoutLayer"
+    view_marker="plone.pageletlayout.interfaces.IFullScreenPagelet"
+    />
+```
+
+(The shipped `fullscreen` declaration per the locked spec; it lands
+together with the trigger chain.)
+
+| Attribute | Type | Required | Meaning |
+|---|---|---|---|
+| `name` | TextLine | yes | the layout name — registry key, `pagelet_layout` param value, `layout_name` value, body-class suffix |
+| `layer` | GlobalInterface | yes | the layout layer the trigger chain applies |
+| `view_marker` | GlobalInterface | no | static view marker that triggers this layout as a view's default |
+
+Mistakes surface at ZCML load, never at request time: the reserved name
+`default` (the default layout is the absence of a layout layer), a `layer`
+not extending `IPlonePageletlayoutLayer`, and a `view_marker` not
+extending `IPagelet` are each configuration errors; two stanzas claiming
+the same layout name conflict at startup.
+
+One asymmetry to note: this is the grammar's only non-adapter directive,
+so its `layer=` is not a lookup dimension ([rule
+5](#5-for--layer--view-name-adapter-dimensions)) but the registered datum
+itself — the request marker the trigger chain applies.
 
 ## The attribute grammar
 
-Five rules, no exceptions. Every future directive addition conforms to them.
+Five rules, no exceptions among the adapter-registering directives
+(`plone:pagelayout` registers a named utility and carries no adapter
+dimensions — see its section). Every future directive addition conforms
+to them.
 
 ### 1. `for` is one-or-many everywhere; `view` and `layer` are exactly-one
 
@@ -265,7 +305,7 @@ standalone `plone:template` stanza. Two consequences worth knowing:
 
 `plone:pagelet` registers the only ZPublisher-traversed thing in the
 grammar, so it is the only place enforcement exists (the AccessControl
-bridge), and there the attribute is mandatory. The other three directives
+bridge), and there the attribute is mandatory. The other four directives
 **refuse** the attribute rather than accept-and-ignore it — z3c:pagelet's
 silently-ignored permission is the cautionary tale.
 

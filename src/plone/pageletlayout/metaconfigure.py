@@ -209,6 +209,22 @@ def templateDirective(
         zope.component.zcml.adapter(_context, (factory,), provides, required, name=name)
 
 
+def layoutTemplateDirective(
+    _context,
+    template,
+    name="",
+    for_=zope.interface.Interface,
+    layer=IDefaultBrowserLayer,
+    provides=ILayoutTemplate,
+    contentType="text/html",
+    macro=None,
+    context=None,
+):
+    templateDirective(
+        _context, template, name, for_, layer, provides, contentType, macro, context
+    )
+
+
 @zope.interface.implementer(IPageLayout)
 class PageLayout:
     """A layout-registry entry (the IPageLayout named utility)."""
@@ -255,20 +271,4 @@ def pageLayoutDirective(_context, name, layer, view_marker=None):
         provides=IPageLayout,
         component=PageLayout(name, layer, view_marker),
         name=name,
-    )
-
-
-def layoutTemplateDirective(
-    _context,
-    template,
-    name="",
-    for_=zope.interface.Interface,
-    layer=IDefaultBrowserLayer,
-    provides=ILayoutTemplate,
-    contentType="text/html",
-    macro=None,
-    context=None,
-):
-    templateDirective(
-        _context, template, name, for_, layer, provides, contentType, macro, context
     )
