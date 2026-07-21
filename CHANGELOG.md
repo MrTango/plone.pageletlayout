@@ -3,6 +3,14 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- `plone:pagelayout` directive + the layout registry
+  (docs/request-layouts.md §1–§3): one validated stanza binds a layout name
+  to a hand-written layout layer (plus an optional static view marker) as
+  an `IPageLayout` named utility, enumerable via
+  `getUtilitiesFor(IPageLayout)`. Config-time rejections: the reserved name
+  `default`, a layer not extending `IPlonePageletlayoutLayer`, a
+  `view_marker` not extending `IPagelet`. Nothing consumes the registry
+  yet — the trigger chain (ticket 08) is next.
 - `folder_contents` is a pagelet: the pat-structure management UI publishes
   through the whole-body layout as the first FULL-SCREEN view (the
   docs/directives.md recipe, shipped) — `IFullScreenPagelet` on the

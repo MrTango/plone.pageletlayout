@@ -7,10 +7,28 @@ leak into another's lookup.
 """
 
 from z3c.pagelet.interfaces import IPagelet
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
+
+from plone.pageletlayout.interfaces import IPlonePageletlayoutLayer
 
 
 class IFullScreenPagelet(IPagelet):
     """Marker for full-screen published pagelets (the view= fixture)."""
+
+
+class ITicket07SplitLayer(IPlonePageletlayoutLayer):
+    """Hand-written layout-layer fixture (extends the package layer)."""
+
+
+class ITicket07BareLayer(IPlonePageletlayoutLayer):
+    """Layout-layer fixture for the marker-less declaration."""
+
+
+class ITicket07ForeignLayer(IDefaultBrowserLayer):
+    """The realistic mistake: a browser layer that skips the package layer.
+
+    Doubles as the not-a-pagelet view_marker fixture — it extends neither
+    IPlonePageletlayoutLayer nor IPagelet."""
 
 
 class SuppressingChromePagelet:
