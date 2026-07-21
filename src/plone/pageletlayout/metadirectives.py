@@ -1,6 +1,6 @@
-"""Schemas for the four ``plone:`` directives (the directive grammar).
+"""Schemas for the five ``plone:`` directives (the directive grammar).
 
-All four schemas live here — ``meta.zcml`` references no z3c schema. The
+All five schemas live here — ``meta.zcml`` references no z3c schema. The
 ``pagelet`` ergonomics (optional class, inline ``template=``, and Tokens
 ``for``) re-derive ideas from gocept.pagelet (prior art), forked off
 z3c.pagelet's and z3c.template's directive schemas.
@@ -158,5 +158,41 @@ class IChromePageletDirective(Interface):
 
     view = GlobalInterface(
         title="View type the provider is available for",
+        required=False,
+    )
+
+
+class IPageLayoutDirective(Interface):
+    """Declare a named page layout: one layout-registry entry.
+
+    The directive *binds* an existing hand-written layer interface, never
+    mints one (docs/request-layouts.md, section 3).
+    """
+
+    name = TextLine(
+        title="Layout name",
+        description=(
+            "Registry key, pagelet_layout param value, layout_name value, "
+            "and body-class suffix. 'default' is reserved — the default "
+            "layout is the absence of a layout layer."
+        ),
+        required=True,
+    )
+
+    layer = GlobalInterface(
+        title="Layout layer",
+        description=(
+            "The request-marker interface the trigger chain applies; must "
+            "extend IPlonePageletlayoutLayer."
+        ),
+        required=True,
+    )
+
+    view_marker = GlobalInterface(
+        title="Static view marker",
+        description=(
+            "Marker (extending IPagelet) that triggers this layout as a "
+            "published view's default. Omit for request-only layouts."
+        ),
         required=False,
     )

@@ -34,6 +34,15 @@
         handler=".metaconfigure.layoutTemplateDirective"
         />
 
+    <!-- Layout declaration: binds a layout name to a hand-written layout
+         layer (plus an optional static view marker) as one IPageLayout
+         named utility — the layout registry. Validated at config time. -->
+    <meta:directive
+        name="pagelayout"
+        schema=".metadirectives.IPageLayoutDirective"
+        handler=".metaconfigure.pageLayoutDirective"
+        />
+
   </meta:directives>
 
 </configure>

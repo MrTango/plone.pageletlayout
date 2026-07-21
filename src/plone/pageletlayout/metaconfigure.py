@@ -27,6 +27,8 @@ from zope.publisher.interfaces.browser import IBrowserView
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 
 from plone.pageletlayout.chrome import ChromePagelet
+from plone.pageletlayout.interfaces import IPageLayout
+from plone.pageletlayout.interfaces import IPlonePageletlayoutLayer
 from plone.pageletlayout.page import PageletPage
 
 
@@ -205,6 +207,55 @@ def templateDirective(
     for iface in for_:
         required = (iface, layer, context) if context is not None else (iface, layer)
         zope.component.zcml.adapter(_context, (factory,), provides, required, name=name)
+
+
+@zope.interface.implementer(IPageLayout)
+class PageLayout:
+    """A layout-registry entry (the IPageLayout named utility)."""
+
+    def __init__(self, name, layer, view_marker=None):
+        self.name = name
+        self.layer = layer
+        self.view_marker = view_marker
+
+
+def pageLayoutDirective(_context, name, layer, view_marker=None):
+    """Register one layout-registry entry, validated at config time.
+
+    A plain <utility> stanza was consciously rejected (no validation, two
+    artifacts per layout, reads as plumbing) — the checks here are the
+    directive's reason to exist, so mistakes surface at startup, not at
+    request time.
+    """
+    if name == "default":
+        raise ConfigurationError(
+            "plone:pagelayout: the name 'default' is reserved — the default "
+            "layout is the absence of a layout layer and never has a "
+            "registry entry."
+        )
+    if not layer.extends(IPlonePageletlayoutLayer):
+        # The specificity-dominance convention: a layout layer more specific
+        # than the package browser layer guarantees its shadows beat every
+        # shipped registration (leftward adapter positions dominate).
+        raise ConfigurationError(
+            f"plone:pagelayout '{name}': layer {layer.__identifier__} must "
+            "extend plone.pageletlayout.interfaces.IPlonePageletlayoutLayer."
+        )
+    if view_marker is not None and not view_marker.extends(interfaces.IPagelet):
+        raise ConfigurationError(
+            f"plone:pagelayout '{name}': view_marker "
+            f"{view_marker.__identifier__} must extend "
+            "z3c.pagelet.interfaces.IPagelet."
+        )
+
+    # Stock utility registration, stock discriminator — two stanzas claiming
+    # the same layout name conflict at startup.
+    zope.component.zcml.utility(
+        _context,
+        provides=IPageLayout,
+        component=PageLayout(name, layer, view_marker),
+        name=name,
+    )
 
 
 def layoutTemplateDirective(

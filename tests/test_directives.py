@@ -11,6 +11,7 @@ import os.path
 import unittest
 
 from zope.component import getMultiAdapter
+from zope.component import getUtilitiesFor
 from zope.configuration import xmlconfig
 from zope.configuration.config import ConfigurationConflictError
 from zope.configuration.exceptions import ConfigurationError
@@ -19,6 +20,7 @@ from zope.contentprovider.interfaces import IContentProvider
 from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from plone.pageletlayout.interfaces import IPageLayout
 from plone.pageletlayout.testing import INTEGRATION_TESTING
 
 
@@ -399,5 +401,86 @@ class TestChromePageletMultiFor(DirectiveTestCase):
                   name="ticket03-chrome-conflict"
                   template="{fixtures}/greeting.pt"
                   for="plone.app.contenttypes.interfaces.IFolder"
+                  />
+            """)
+
+
+class TestPageLayoutDirective(DirectiveTestCase):
+    """plone:pagelayout binds a layout name to a hand-written layout layer
+    (request-layouts map, ticket 07).
+
+    One stanza registers one IPageLayout named utility — utility name =
+    layout name — and mistakes surface at ZCML load, never at request time:
+    the reserved name 'default', a layer that doesn't extend the package
+    browser layer, and a view_marker that doesn't extend IPagelet are each
+    config-time errors.
+    """
+
+    def _layouts(self):
+        return dict(getUtilitiesFor(IPageLayout))
+
+    def test_stanza_lands_in_registry_with_declared_fields(self):
+        load("""
+          <plone:pagelayout
+              name="ticket07-split"
+              layer="tests.directive_fixtures.ITicket07SplitLayer"
+              view_marker="tests.directive_fixtures.IFullScreenPagelet"
+              />
+        """)
+        from tests.directive_fixtures import IFullScreenPagelet
+        from tests.directive_fixtures import ITicket07SplitLayer
+
+        entry = self._layouts()["ticket07-split"]
+        self.assertEqual(entry.name, "ticket07-split")
+        self.assertIs(entry.layer, ITicket07SplitLayer)
+        self.assertIs(entry.view_marker, IFullScreenPagelet)
+
+    def test_view_marker_is_optional(self):
+        load("""
+          <plone:pagelayout
+              name="ticket07-bare"
+              layer="tests.directive_fixtures.ITicket07BareLayer"
+              />
+        """)
+        self.assertIsNone(self._layouts()["ticket07-bare"].view_marker)
+
+    def test_reserved_name_default_is_rejected(self):
+        with self.assertRaises(ConfigurationError):
+            load("""
+              <plone:pagelayout
+                  name="default"
+                  layer="tests.directive_fixtures.ITicket07SplitLayer"
+                  />
+            """)
+
+    def test_layer_outside_the_package_layer_is_rejected(self):
+        with self.assertRaises(ConfigurationError):
+            load("""
+              <plone:pagelayout
+                  name="ticket07-foreign"
+                  layer="tests.directive_fixtures.ITicket07ForeignLayer"
+                  />
+            """)
+
+    def test_view_marker_not_a_pagelet_is_rejected(self):
+        with self.assertRaises(ConfigurationError):
+            load("""
+              <plone:pagelayout
+                  name="ticket07-badmarker"
+                  layer="tests.directive_fixtures.ITicket07SplitLayer"
+                  view_marker="tests.directive_fixtures.ITicket07ForeignLayer"
+                  />
+            """)
+
+    def test_duplicate_layout_names_conflict(self):
+        with self.assertRaises(ConfigurationConflictError):
+            load("""
+              <plone:pagelayout
+                  name="ticket07-dup"
+                  layer="tests.directive_fixtures.ITicket07SplitLayer"
+                  />
+              <plone:pagelayout
+                  name="ticket07-dup"
+                  layer="tests.directive_fixtures.ITicket07BareLayer"
                   />
             """)
