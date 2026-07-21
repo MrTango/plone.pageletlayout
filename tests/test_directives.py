@@ -4,7 +4,8 @@ The seam is the ZCML itself: each test loads a stanza through the package's
 ``meta.zcml`` exactly the way an add-on would, then observes the registered
 component through traversal and adapter lookup — never through the handler
 internals. Registrations land in the layer's stacked component registry and
-use unique ``ticket03-*`` names so they cannot shadow package registrations.
+use unique per-ticket names (``ticket03-*``, ``ticket05-*``, ``ticket07-*``)
+so they cannot shadow package registrations.
 """
 
 import os.path
