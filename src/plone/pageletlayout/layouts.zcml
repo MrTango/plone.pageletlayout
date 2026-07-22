@@ -1,0 +1,28 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       Named page layouts (docs/request-layouts.md). The registry entries
+       (plone:pagelayout binds a name to its hand-written layout layer) and
+       the one trigger-chain subscriber that applies at most one layout
+       layer per request. The layouts' variant registrations (region/frame
+       shadows on the layer) live next to what they shadow:
+       pagelets/layout.zcml.
+       ====================================================================== -->
+
+  <!-- fullscreen: full standalone page without chrome; folder_contents
+       defaults to it via the IFullScreenPagelet static view marker. -->
+  <plone:pagelayout
+      name="fullscreen"
+      layer="plone.pageletlayout.interfaces.IFullscreenLayoutLayer"
+      view_marker="plone.pageletlayout.interfaces.IFullScreenPagelet"
+      />
+
+  <!-- The trigger chain (param > ajax_load alias > static view marker >
+       default), post-traversal so it can never influence which view is
+       published. -->
+  <subscriber handler=".layouts.apply_layout" />
+
+</configure>

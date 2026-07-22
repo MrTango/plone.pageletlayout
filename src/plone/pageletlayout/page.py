@@ -8,9 +8,13 @@ Two jobs main_template used to own move into the published object itself:
   markup directly, so the theme transform must not run over it again.
 """
 
+from functools import cached_property
+
 from z3c.pagelet.browser import BrowserPagelet
+from zope.component import getUtilitiesFor
 from zope.component import getUtility
 
+from plone.pageletlayout.interfaces import IPageLayout
 from plone.registry.interfaces import IRegistry
 
 
@@ -21,6 +25,21 @@ class PageletPage(BrowserPagelet):
     ``z3c:pagelet`` mixes in BrowserPagelet — pagelet classes don't need
     to subclass it themselves.
     """
+
+    @cached_property
+    def layout_name(self):
+        """The applied layout layer's registry name, else ``"default"``.
+
+        Templates: ``view/layout_name``; chrome pagelets and code:
+        ``self.view.layout_name`` (reachable everywhere by the composition
+        rule). Alias-free: an ``ajax_load=1`` request reports ``ajax`` —
+        consumers condition on the layout name, never on raw params
+        (docs/request-layouts.md, section 5).
+        """
+        for name, entry in sorted(getUtilitiesFor(IPageLayout)):
+            if entry.layer.providedBy(self.request):
+                return name
+        return "default"
 
     def __call__(self):
         self._set_http_headers()

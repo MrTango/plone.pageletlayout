@@ -132,12 +132,14 @@ class ManagedLayoutRegionChromePagelet(ChromePagelet):
 
 
 class BodyOnlyRegion(ChromePagelet):
-    """The page region on full-screen views (IFullScreenPagelet): just the
-    body element — no logo, nav, breadcrumbs or footer; the ``<head>``
-    plumbing and the toolbar stay with the shell. Registered under the same
-    provider name with ``view=`` the marker, so adapter specificity picks it
-    on full-screen views and the managed region everywhere else (the recipe
-    in docs/directives.md). A class, not a template: the body provider must
+    """The fullscreen layout's page region: just the body element — no
+    logo, nav, breadcrumbs or footer; the ``<head>`` plumbing and the
+    toolbar stay with the shell. Registered under the same provider name
+    with ``layer=IFullscreenLayoutLayer``, so adapter specificity picks it
+    whenever the trigger chain applied the fullscreen layer
+    (``?pagelet_layout=fullscreen`` or the IFullScreenPagelet static
+    marker) and the managed region everywhere else (the recipe in
+    docs/directives.md). A class, not a template: the body provider must
     be looked up with ``self.view``, the published pagelet (the
     BodyChromePagelet lesson)."""
 

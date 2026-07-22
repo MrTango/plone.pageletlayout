@@ -18,6 +18,10 @@
   <include package="z3c.pagelet" />
   <include file="meta.zcml" />
 
+  <!-- Named page layouts: registry entries + the trigger-chain subscriber
+       (docs/request-layouts.md). -->
+  <include file="layouts.zcml" />
+
   <include package=".pagelets" />
 
   <!-- No <browser:resourceDirectory>: plone.pageletlayout ships ZERO CSS

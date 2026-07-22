@@ -47,12 +47,22 @@ class IPageLayout(Interface):
     )
 
 
-class IFullScreenPagelet(IPagelet):
-    """Published pagelets that take the page region for themselves.
+class IFullscreenLayoutLayer(IPlonePageletlayoutLayer):
+    """The ``fullscreen`` layout layer: a full standalone page without
+    chrome — the site's ``<head>`` plumbing and toolbar stay, the page
+    region is body-only (``BodyOnlyRegion`` shadows the region provider on
+    this layer). Applied by the trigger chain via ``?pagelet_layout=
+    fullscreen`` or the ``IFullScreenPagelet`` static view marker; bound to
+    its name by the ``plone:pagelayout`` stanza in layouts.zcml."""
 
-    Put on a published view via a ``plone:pagelet`` stanza's ``provides=``;
-    a ``plone:chromepagelet`` stanza with ``view=`` this marker shadows the
-    shipped ``plone.pageletlayout.pagelayout`` region provider with the
-    body-only variant (``BodyOnlyRegion``) — the ``<head>`` plumbing and the
-    toolbar stay, logo/nav/breadcrumbs/footer go. The full recipe:
+
+class IFullScreenPagelet(IPagelet):
+    """Static view marker: published pagelets whose *default* layout is
+    ``fullscreen``.
+
+    Put on a published view via a ``plone:pagelet`` stanza's ``provides=``.
+    A trigger only: the trigger chain (layouts.py) sees the marker on the
+    published view and applies ``IFullscreenLayoutLayer`` — all fullscreen
+    variants register on that layer, and ``?pagelet_layout=default`` is the
+    escape hatch back to the default layout. The full recipe:
     docs/directives.md, "Recipe: a full-screen view"."""
