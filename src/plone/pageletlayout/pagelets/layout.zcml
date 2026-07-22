@@ -191,11 +191,12 @@
   <!-- ======================================================================
        folder_contents: the pattern-driven management UI as a FULL-SCREEN
        pagelet (the docs/directives.md recipe, shipped). The stanza's
-       provides= puts the IFullScreenPagelet marker on the published view;
-       the second stanza shadows the page-region provider for exactly that
-       marker — body only, head plumbing and toolbar stay. Shadows the stock
-       browser:page (plone.app.content) on our layer; for= is the stock
-       registration's own IFolderish, so the site root is covered too.
+       provides= puts the IFullScreenPagelet marker on the published view —
+       a trigger only: the trigger chain (layouts.py) sees it and applies
+       the fullscreen layout layer, where the region shadow below lives.
+       Shadows the stock browser:page (plone.app.content) on our layer;
+       for= is the stock registration's own IFolderish, so the site root is
+       covered too.
        ====================================================================== -->
   <plone:pagelet
       name="folder_contents"
@@ -207,12 +208,16 @@
       permission="cmf.ListFolderContents"
       />
 
-  <!-- On views providing the marker, the page region is body-only. -->
+  <!-- The fullscreen layout's variant: on requests carrying the fullscreen
+       layout layer, the page region is body-only. The layer dimension (not
+       view=): a layout layer more specific than the package browser layer
+       beats every shipped registration, and registering once on the layer
+       serves the static marker AND ?pagelet_layout=fullscreen (the one
+       migration in docs/request-layouts.md, section 10). -->
   <plone:chromepagelet
       name="plone.pageletlayout.pagelayout"
       class=".layout.BodyOnlyRegion"
-      view="plone.pageletlayout.interfaces.IFullScreenPagelet"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      layer="plone.pageletlayout.interfaces.IFullscreenLayoutLayer"
       />
 
   <!-- The shared shell: ONE layout template for all twelve published

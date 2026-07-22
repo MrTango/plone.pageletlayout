@@ -2,12 +2,16 @@
 
 ``folder_contents`` — the pat-structure management UI — is the first view
 shipped through the full-screen recipe (docs/directives.md): the published
-pagelet carries ``IFullScreenPagelet`` via its registration's ``provides=``,
-which flips the ``plone.pageletlayout.pagelayout`` region provider to
-``BodyOnlyRegion`` — the body element alone, no logo/nav/breadcrumbs/footer,
-while the ``<head>`` plumbing stays with the shell. The options JSON delegates
-to the stock ``FolderContentsView``. These tests pin the shipped wiring; the
-directive mechanics themselves are pinned by
+pagelet carries ``IFullScreenPagelet`` via its registration's ``provides=``.
+Since the request-layouts effort (ticket 08) the marker is a *trigger* only:
+the trigger chain applies ``IFullscreenLayoutLayer`` to the request, and the
+region shadow (``BodyOnlyRegion`` — the body element alone, no
+logo/nav/breadcrumbs/footer, while the ``<head>`` plumbing stays with the
+shell) registers on that layer. ``restrictedTraverse`` never fires the
+trigger chain, so the region-flip test marks the request itself; the
+end-to-end publish path is pinned in ``test_request_layouts``. The options
+JSON delegates to the stock ``FolderContentsView``. The view-dimension
+directive mechanics remain pinned by
 ``test_directives.TestChromePageletViewDimension``.
 """
 
@@ -16,10 +20,13 @@ import unittest
 import transaction
 from AccessControl import Unauthorized
 
+from zope.interface import alsoProvides
+
 from plone import api
 from plone.app.testing import logout
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from plone.pageletlayout.interfaces import IFullscreenLayoutLayer
 from plone.pageletlayout.interfaces import IFullScreenPagelet
 from plone.pageletlayout.testing import FUNCTIONAL_TESTING
 
@@ -59,6 +66,9 @@ class TestFolderContentsView(FolderContentsTestCase):
         self.assertIn("folder_contents", html)
 
     def test_fullscreen_region_drops_the_chrome(self):
+        # The region shadow rides the fullscreen layout layer (the trigger
+        # chain applies it on a real publish; here we mark the request).
+        alsoProvides(self.layer["request"], IFullscreenLayoutLayer)
         html = self.folder.restrictedTraverse("folder_contents")()
         # body-only: no logo, no navigation, no footer rows
         self.assertNotIn("element-logo", html)

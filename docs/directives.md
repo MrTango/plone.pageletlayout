@@ -135,8 +135,11 @@ adapter dimension). So `view=ISomeMarker` means "this part is available on
 published views providing `ISomeMarker`" — it restricts **where the part
 appears**. It does **not** mean "which layout template the part renders in";
 no attribute anywhere in the grammar selects a layout from a pagelet or
-chrome stanza. See [the full-screen recipe](#recipe-a-full-screen-view) for
-the `view=` dimension doing real work.
+chrome stanza. (The shipped fullscreen region shadow used the `view=`
+dimension before the named-layout mechanism moved it to `layer=` — see
+[the full-screen recipe](#recipe-a-full-screen-view); the view dimension
+still works and remains pinned by
+`tests/test_directives.py::TestChromePageletViewDimension`.)
 
 ## `plone:template` and `plone:layout`
 
@@ -204,8 +207,8 @@ chain, shipped layouts, caching) is
     />
 ```
 
-(The shipped `fullscreen` declaration per the locked spec; it lands
-together with the trigger chain.)
+(The shipped `fullscreen` declaration — layouts.zcml, next to the
+trigger-chain subscriber.)
 
 | Attribute | Type | Required | Meaning |
 |---|---|---|---|
@@ -369,91 +372,56 @@ inline `template=`, an explicit composed page is one stanza and one `.pt`.
 Some views want the content region to themselves — `folder_contents` is the
 motivating case: a pattern-driven management UI that needs the site's
 `<head>` plumbing and the toolbar, but no logo, navigation, breadcrumbs or
-footer. The `view=` dimension does this with two stanzas and no changes to
-the shipped layout.
-
-**The package now ships this recipe**: `folder_contents` itself is published
-as a full-screen pagelet (`FolderContentsPagelet` in `pagelets/content.py`,
-`LayoutFolderContentsPagelet` + `BodyOnlyRegion` in `pagelets/layout.py`,
-wired in `pagelets/layout.zcml`). Because the marker
-(`plone.pageletlayout.interfaces.IFullScreenPagelet`) and the body-only
-region shadow are registered once, in-package, a consumer needs only the
-*first* stanza below — a `plone:pagelet` with
-`provides="plone.pageletlayout.interfaces.IFullScreenPagelet"` — to get a
-full-screen page. The walkthrough keeps both stanzas to show the whole
-mechanism (and how to build a different region variant of your own).
-
-The shipped page region is a single provider point: `layout.pt` renders
-`provider:plone.pageletlayout.pagelayout`, registered for `view=IBrowserView`
-(all published views). The recipe: mark your full-screen pagelet with a
-marker interface via `provides=`, then shadow the region provider for
-exactly that marker.
-
-```python
-from plone.pageletlayout.chrome import ChromePagelet
-from z3c.pagelet.interfaces import IPagelet
-from zope.component import getMultiAdapter
-from zope.contentprovider.interfaces import IContentProvider
-
-
-class IFullScreenPagelet(IPagelet):
-    """Published views that take the page region for themselves."""
-
-
-class BodyOnlyRegion(ChromePagelet):
-    """The page region on full-screen views: just the body element."""
-
-    def render(self):
-        provider = getMultiAdapter(
-            (self.context, self.request, self.view),
-            IContentProvider,
-            name="plone.pageletlayout.body",
-        )
-        provider.update()
-        return provider.render()
-```
+footer. Fullscreen is a shipped **named page layout**
+([request-layouts.md](request-layouts.md)), so the recipe is one stanza: an
+ordinary pagelet that additionally provides the static view marker.
 
 ```xml
-<!-- An ordinary pagelet that additionally provides the marker. -->
+<!-- An ordinary pagelet whose DEFAULT layout is fullscreen. -->
 <plone:pagelet
     name="folder_contents"
     class=".contents.FolderContentsPagelet"
     template="templates/folder_contents.pt"
-    provides=".interfaces.IFullScreenPagelet"
+    provides="plone.pageletlayout.interfaces.IFullScreenPagelet"
     for="plone.app.contenttypes.interfaces.IFolder"
     layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
     permission="cmf.ListFolderContents"
-    />
-
-<!-- On views providing the marker, the page region is body-only. -->
-<plone:chromepagelet
-    name="plone.pageletlayout.pagelayout"
-    class=".contents.BodyOnlyRegion"
-    view=".interfaces.IFullScreenPagelet"
-    layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
     />
 ```
 
 Why this works, mechanically:
 
-- `provides=` puts the marker on the *published view* — the third position
-  of every chrome lookup on that page.
-- Registering the **same provider name** with `view=IFullScreenPagelet`
-  doesn't conflict with the shipped stanza (the `view` dimension is part of
-  the registration's identity) and doesn't remove anything: adapter
-  specificity picks the marker registration on full-screen views and the
-  shipped one everywhere else.
-- Because the name always resolves, `layout.pt` needs **no guard** — this
-  matters, since a `provider:` expression whose lookup fails raises
+- `provides=` puts the marker on the *published view*. The marker is a
+  **trigger only**: the post-traversal trigger chain (`layouts.py`) sees it
+  and applies the fullscreen **layout layer**
+  (`plone.pageletlayout.interfaces.IFullscreenLayoutLayer`) to the request
+  — the `plone:pagelayout` declaration above binds the two.
+- The layout's variant registers once, **on the layer**: the shipped
+  body-only region (`BodyOnlyRegion` in `pagelets/layout.py`) shadows
+  `plone.pageletlayout.pagelayout` with
+  `layer="…IFullscreenLayoutLayer"`. A layout layer extends the package
+  browser layer, so it is more specific and its shadow wins wherever the
+  layer is applied; everywhere else the shipped managed region resolves.
+- Because the provider name always resolves, `layout.pt` needs **no
+  guard** — a `provider:` expression whose lookup fails raises
   `ContentProviderLookupError` at render time. Shadow the provider; never
   try to make its registration disappear.
-- `BodyOnlyRegion` is a class, not a template, because of the nested-view
-  trap above: it must look the body provider up with `self.view` (the
-  published pagelet), exactly as the shipped
-  `ManagedLayoutRegionChromePagelet` looks up the managed manager.
+- One registration serves both routes to the layout: the static marker
+  *and* an explicit `?pagelet_layout=fullscreen` on any pagelet page. And
+  because the marker only triggers, `?pagelet_layout=default` is an escape
+  hatch — even `folder_contents` can render the default layout on request.
 
-The mechanics are pinned by
-`tests/test_directives.py::TestChromePageletViewDimension`.
+To build a **layout of your own** (a different region variant, a print or
+embed layout), follow the extension recipe in
+[request-layouts.md](request-layouts.md#the-extension-recipe-third-party-or-later-core):
+hand-write a layer, declare it with `plone:pagelayout`, and shadow the page
+region (plus, optionally, frame and head providers) on that layer.
+
+A `view=`-dimension shadow — the pre-layout form of this recipe — still
+works as before and still beats the shipped base registration; the layer
+dimension is the documented form. The view-dimension mechanics remain
+pinned by `tests/test_directives.py::TestChromePageletViewDimension`; the
+layout behavior by `tests/test_request_layouts.py`.
 
 (Your pagelet class still needs a layout frame like any other: subclass one
 of the shipped `Layout*` pagelets — adapter registrations for a class cover

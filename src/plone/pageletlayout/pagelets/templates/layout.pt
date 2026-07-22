@@ -14,7 +14,9 @@
   <tal:scripts replace="structure provider:plone.pageletlayout.scripts" />
   <meta name="generator" content="Plone - https://plone.org/" />
 </head>
-<body tal:define="body_class python:plone_layout.bodyClass(template, view)"
+<!-- The layout body class (pagelet-layout-<resolved name>): the CSS twin of
+     view/layout_name, stamped in every frame alongside bodyClass. -->
+<body tal:define="body_class python:'{} pagelet-layout-{}'.format(plone_layout.bodyClass(template, view), view.layout_name)"
       tal:attributes="class body_class;
                       dir python:isRTL and 'rtl' or 'ltr';
                       python:context.restrictedTraverse('@@plone_patterns_settings')()">

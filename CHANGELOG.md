@@ -3,6 +3,19 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- Request-time layout selection: the trigger chain
+  (docs/request-layouts.md §4–§6). One `IPubAfterTraversal` subscriber
+  applies at most one layout layer per request — `?pagelet_layout=<name>`
+  beats the `ajax_load` alias beats a registry entry's static view marker;
+  `?pagelet_layout=default` is the escape hatch; unknown names log one
+  warning on `plone.pageletlayout.layouts` and fall through. `fullscreen`
+  is the first registered layout (`IFullscreenLayoutLayer`,
+  `view_marker=IFullScreenPagelet`): the `BodyOnlyRegion` shadow moved
+  from the `view=` to the `layer=` dimension, so any pagelet page can be
+  requested fullscreen while `folder_contents` keeps it as its unchanged
+  static default. Templates read the resolved name via `view/layout_name`
+  (lazy, alias-free, `"default"` when nothing fired), and the shared frame
+  stamps `pagelet-layout-<name>` on `<body>` alongside bodyClass.
 - `plone:pagelayout` directive + the layout registry
   (docs/request-layouts.md §1–§3): one validated stanza binds a layout name
   to a hand-written layout layer (plus an optional static view marker) as
