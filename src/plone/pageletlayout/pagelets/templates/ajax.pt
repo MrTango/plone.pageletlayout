@@ -1,0 +1,28 @@
+<tal:doctype replace="structure string:&lt;!DOCTYPE html&gt;" />
+<!-- The ajax frame (docs/request-layouts.md, section 6): a full document,
+     never a true fragment — mockup's parseBodyTag hard-requires a literal
+     <body> element. The head is charset only, ever: no title, no head
+     providers — a fragment must never re-trigger resource loading. No
+     toolbar: its absence is this frame simply not rendering the provider. -->
+<html tal:define="portal_state python:context.restrictedTraverse('@@plone_portal_state');
+                  plone_layout python:context.restrictedTraverse('@@plone_layout');
+                  dummy python:plone_layout.mark_view(view);
+                  isRTL portal_state/is_rtl;"
+      tal:attributes="lang portal_state/language">
+<head>
+  <meta charset="utf-8" />
+</head>
+<!-- The fully-attributed body is contract, not cosmetics: pat-plone-modal's
+     redirect detection reads data-base-url/data-view-url off the body tag,
+     and patterns re-initialising inside injected content need the
+     patterns-settings data attributes. -->
+<body tal:define="body_class python:'{} pagelet-layout-{}'.format(plone_layout.bodyClass(template, view), view.layout_name)"
+      tal:attributes="class body_class;
+                      dir python:isRTL and 'rtl' or 'ltr';
+                      python:context.restrictedTraverse('@@plone_patterns_settings')()">
+  <!-- The single provider point stays resolvable in every layout (the
+       no-guard guarantee); on the ajax layer it is AjaxRegion — the fixed
+       fragment element set. -->
+  <tal:region replace="structure provider:plone.pageletlayout.pagelayout" />
+</body>
+</html>

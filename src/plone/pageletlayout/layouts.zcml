@@ -20,6 +20,15 @@
       view_marker="plone.pageletlayout.interfaces.IFullScreenPagelet"
       />
 
+  <!-- ajax: the bare fragment-contract document for fetch/modal consumers.
+       Request-only — no view defaults to ajax, so there is no view_marker;
+       the stock ajax_load=1 alias resolves to this entry in the trigger
+       chain. -->
+  <plone:pagelayout
+      name="ajax"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
   <!-- The trigger chain (param > ajax_load alias > static view marker >
        default), post-traversal so it can never influence which view is
        published. -->

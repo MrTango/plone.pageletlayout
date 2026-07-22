@@ -3,6 +3,18 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- The `ajax` layout & the fragment contract (docs/request-layouts.md §6):
+  `?pagelet_layout=ajax` — and stock `ajax_load=1`, whose alias trigger is
+  now live — returns the fragment-contract document stock Mockup patterns
+  extract from: a full document with a charset-only head, the
+  fully-attributed `<body>` (bodyClass + `pagelet-layout-ajax`, `dir`,
+  patterns-settings data attributes), then `.portalMessage` status messages
+  and `<article id="content">` wrapping the first-`h1` content header and
+  the `#content-core` body. No toolbar, no chrome. The element set is fixed
+  by construction (`AjaxRegion`, a dedicated `ajax.pt` frame on
+  `IAjaxLayoutLayer`), and every ajax response carries `X-Theme-Disabled: 1`
+  and `X-Robots-Tag: noindex` on both param spellings. `#content` stays
+  ajax-only; `layout_name` reports `ajax` alias-free.
 - Request-time layout selection: the trigger chain
   (docs/request-layouts.md §4–§6). One `IPubAfterTraversal` subscriber
   applies at most one layout layer per request — `?pagelet_layout=<name>`

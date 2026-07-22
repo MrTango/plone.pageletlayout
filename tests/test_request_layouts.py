@@ -1,18 +1,20 @@
-"""Trigger-chain and fullscreen-layout tests (request-layouts ticket 08).
+"""Trigger-chain and named-layout tests (request-layouts tickets 08 + 09).
 
-Two seams. The subscriber itself (``layouts.apply_layout``) is exercised
+Three seams. The subscriber itself (``layouts.apply_layout``) is exercised
 directly with a ``PubAfterTraversal`` event — precedence, escape hatch,
 unknown-name fall-through, the at-most-one-layer rule. The end-to-end
-behavior — the fullscreen region flip, the layout body class, the toolbar
-and head staying intact — is pinned functionally through the publisher
+behavior — the fullscreen region flip, the ajax fragment contract, the
+layout body class — is pinned functionally through the publisher
 (testbrowser), because the trigger chain only fires on a real publish:
-``restrictedTraverse`` never emits ``IPubAfterTraversal``.
+``restrictedTraverse`` never emits ``IPubAfterTraversal``. The fragment's
+element order (with a real status message queued) is pinned by marking the
+request and rendering the view directly.
 """
 
 import unittest
 
 import transaction
-from zope.component import getGlobalSiteManager
+from Products.statusmessages.interfaces import IStatusMessage
 from zope.component import getMultiAdapter
 from zope.component import getUtilitiesFor
 from zope.contentprovider.interfaces import IContentProvider
@@ -24,12 +26,11 @@ from plone.app.testing import setRoles
 from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import SITE_OWNER_PASSWORD
 from plone.app.testing import TEST_USER_ID
+from plone.pageletlayout.interfaces import IAjaxLayoutLayer
 from plone.pageletlayout.interfaces import IFullscreenLayoutLayer
 from plone.pageletlayout.interfaces import IFullScreenPagelet
 from plone.pageletlayout.interfaces import IPageLayout
-from plone.pageletlayout.interfaces import IPlonePageletlayoutLayer
 from plone.pageletlayout.layouts import apply_layout
-from plone.pageletlayout.metaconfigure import PageLayout
 from plone.pageletlayout.page import PageletPage
 from plone.pageletlayout.pagelets.layout import BodyOnlyRegion
 from plone.pageletlayout.testing import FUNCTIONAL_TESTING
@@ -38,11 +39,6 @@ from plone.testing.zope import Browser
 
 
 LOGGER = "plone.pageletlayout.layouts"
-
-
-class ITestAjaxLayer(IPlonePageletlayoutLayer):
-    """Stand-in ajax layout layer: ticket 09 ships the real one; here it
-    only proves the alias trigger resolves the name through the registry."""
 
 
 class _MarkedView:
@@ -65,12 +61,6 @@ class TriggerChainTestCase(unittest.TestCase):
         view = _MarkedView()
         alsoProvides(view, IFullScreenPagelet)
         return view
-
-    def register_ajax(self):
-        gsm = getGlobalSiteManager()
-        entry = PageLayout("ajax", ITestAjaxLayer)
-        gsm.registerUtility(entry, IPageLayout, name="ajax")
-        self.addCleanup(gsm.unregisterUtility, entry, IPageLayout, "ajax")
 
 
 class TestTriggerChain(TriggerChainTestCase):
@@ -104,37 +94,37 @@ class TestTriggerChain(TriggerChainTestCase):
         self.assertFalse(IFullscreenLayoutLayer.providedBy(self.request))
 
     def test_alias_resolves_the_ajax_layout_through_the_registry(self):
-        self.register_ajax()
         self.fire({"ajax_load": "1"})
-        self.assertTrue(ITestAjaxLayer.providedBy(self.request))
+        self.assertTrue(IAjaxLayoutLayer.providedBy(self.request))
 
-    def test_alias_is_inert_while_no_ajax_layout_is_registered(self):
-        # No special-casing: the name just misses the registry, so the
-        # chain falls through to the static marker.
-        self.fire({"ajax_load": "1"}, published=self.marked_view())
-        self.assertFalse(ITestAjaxLayer.providedBy(self.request))
-        self.assertTrue(IFullscreenLayoutLayer.providedBy(self.request))
+    def test_ajax_param_applies_the_ajax_layer(self):
+        self.fire({"pagelet_layout": "ajax"})
+        self.assertTrue(IAjaxLayoutLayer.providedBy(self.request))
 
     def test_explicit_falsy_alias_forces_nothing(self):
-        self.register_ajax()
         self.fire({"ajax_load": "0"})
-        self.assertFalse(ITestAjaxLayer.providedBy(self.request))
+        self.assertFalse(IAjaxLayoutLayer.providedBy(self.request))
         self.assertFalse(IFullscreenLayoutLayer.providedBy(self.request))
 
     def test_param_beats_alias_beats_marker_one_layer_only(self):
-        self.register_ajax()
         self.fire(
             {"pagelet_layout": "fullscreen", "ajax_load": "1"},
             published=self.marked_view(),
         )
         self.assertTrue(IFullscreenLayoutLayer.providedBy(self.request))
-        self.assertFalse(ITestAjaxLayer.providedBy(self.request))
+        self.assertFalse(IAjaxLayoutLayer.providedBy(self.request))
 
     def test_alias_beats_the_static_marker(self):
-        self.register_ajax()
         self.fire({"ajax_load": "1"}, published=self.marked_view())
-        self.assertTrue(ITestAjaxLayer.providedBy(self.request))
+        self.assertTrue(IAjaxLayoutLayer.providedBy(self.request))
         self.assertFalse(IFullscreenLayoutLayer.providedBy(self.request))
+
+    def test_unknown_name_falls_through_to_the_alias(self):
+        # Lenient by design: ?pagelet_layout=typo&ajax_load=1 still honors
+        # the ajax intent.
+        with self.assertLogs(LOGGER, level="WARNING"):
+            self.fire({"pagelet_layout": "no-such", "ajax_load": "1"})
+        self.assertTrue(IAjaxLayoutLayer.providedBy(self.request))
 
 
 class TestLayoutName(TriggerChainTestCase):
@@ -148,7 +138,6 @@ class TestLayoutName(TriggerChainTestCase):
         self.assertEqual(page.layout_name, "fullscreen")
 
     def test_alias_request_reports_the_layout_name_alias_free(self):
-        self.register_ajax()
         self.fire({"ajax_load": "1"})
         page = PageletPage(self.layer["portal"], self.request)
         self.assertEqual(page.layout_name, "ajax")
@@ -170,13 +159,23 @@ class TestLayoutName(TriggerChainTestCase):
 
 
 class TestLayoutRegistry(TriggerChainTestCase):
-    def test_registry_enumerates_the_fullscreen_layout(self):
+    def test_registry_enumerates_all_shipped_layouts(self):
+        # The spec's full registry assertion: fullscreen + ajax (default is
+        # the absence of a layer and never has an entry).
         layouts = dict(getUtilitiesFor(IPageLayout))
-        self.assertIn("fullscreen", layouts)
-        entry = layouts["fullscreen"]
+        self.assertEqual(sorted(layouts), ["ajax", "fullscreen"])
+
+    def test_the_fullscreen_entry(self):
+        entry = dict(getUtilitiesFor(IPageLayout))["fullscreen"]
         self.assertEqual(entry.name, "fullscreen")
         self.assertIs(entry.layer, IFullscreenLayoutLayer)
         self.assertIs(entry.view_marker, IFullScreenPagelet)
+
+    def test_the_ajax_entry_is_request_only(self):
+        entry = dict(getUtilitiesFor(IPageLayout))["ajax"]
+        self.assertEqual(entry.name, "ajax")
+        self.assertIs(entry.layer, IAjaxLayoutLayer)
+        self.assertIsNone(entry.view_marker)
 
 
 class FunctionalLayoutTestCase(unittest.TestCase):
@@ -253,3 +252,125 @@ class TestFullscreenByStaticMarker(FunctionalLayoutTestCase):
         self.assertEqual(len(captured.records), 1)
         self.assertNotIn("element-logo", html)
         self.assertIn("pagelet-layout-fullscreen", html)
+
+
+class TestAjaxFragmentContract(FunctionalLayoutTestCase):
+    """The ajax layout end-to-end: both param spellings return the
+    fragment-contract document (docs/request-layouts.md, section 6)."""
+
+    def assert_contract_document(self, html):
+        # A full document with a charset-only head: no title, no head
+        # providers (styles/scripts/meta), no toolbar, no chrome elements.
+        self.assertTrue(html.lstrip().startswith("<!DOCTYPE html>"))
+        self.assertIn('lang="en"', html)
+        # Charset only between <head> and </head> — no title, no head
+        # providers. (plone.protect's transform appends protect.js to the
+        # *body* on authenticated responses; that is outside the layout.)
+        head = html[html.index("<head>") : html.index("</head>")]
+        self.assertIn('<meta charset="utf-8"', head)
+        self.assertNotIn("<title", head)
+        self.assertNotIn("<link", head)
+        self.assertNotIn("<script", head)
+        self.assertNotIn('name="viewport"', html)
+        self.assertNotIn('name="generator"', html)
+        self.assertNotIn('id="edit-zone"', html)
+        self.assertNotIn("element-logo", html)
+        self.assertNotIn("element-colophon", html)
+        # The extraction targets: #content wrapping the first h1 and the
+        # body element's #content-core wrapper.
+        self.assertIn('<article id="content">', html)
+        self.assertIn('class="documentFirstHeading"', html)
+        self.assertIn('id="content-core"', html)
+
+    def assert_contract_headers(self):
+        headers = self.browser.headers
+        self.assertEqual(headers.get("X-Theme-Disabled"), "1")
+        self.assertEqual(headers.get("X-Robots-Tag"), "noindex")
+
+    def test_canonical_param_returns_the_contract_document(self):
+        html = self.open("a-folder/a-doc/pagelet_view?pagelet_layout=ajax")
+        self.assert_contract_document(html)
+        self.assert_contract_headers()
+
+    def test_alias_returns_the_contract_document(self):
+        html = self.open("a-folder/a-doc/pagelet_view?ajax_load=1")
+        self.assert_contract_document(html)
+        self.assert_contract_headers()
+
+    def test_body_attributes_carry_the_pattern_hooks(self):
+        html = self.open("a-folder/a-doc/pagelet_view?pagelet_layout=ajax")
+        # bodyClass + the layout body class, dir, and the patterns-settings
+        # data attributes pat-plone-modal's redirect detection reads.
+        self.assertIn("pagelet-layout-ajax", html)
+        self.assertIn("portaltype-document", html)
+        self.assertIn('dir="ltr"', html)
+        self.assertIn("data-base-url=", html)
+        self.assertIn("data-view-url=", html)
+
+    def test_unknown_name_with_alias_returns_the_contract(self):
+        with self.assertLogs(LOGGER, level="WARNING"):
+            html = self.open("a-folder/a-doc/pagelet_view?pagelet_layout=no-such&ajax_load=1")
+        self.assert_contract_document(html)
+        self.assert_contract_headers()
+
+    def test_alias_beats_the_static_marker_end_to_end(self):
+        # folder_contents' default is fullscreen; the alias re-dresses it
+        # as the ajax fragment.
+        html = self.open("a-folder/folder_contents?ajax_load=1")
+        self.assertIn("pagelet-layout-ajax", html)
+        self.assertNotIn("pagelet-layout-fullscreen", html)
+        self.assertNotIn('id="edit-zone"', html)
+        self.assert_contract_headers()
+
+    def test_explicit_falsy_alias_renders_the_default_layout(self):
+        html = self.open("a-folder/a-doc/pagelet_view?ajax_load=0")
+        self.assertIn("pagelet-layout-default", html)
+        self.assertIn("element-logo", html)
+
+    def test_content_id_is_ajax_only(self):
+        # #content is the ajax layout's extraction hook; other layouts keep
+        # per-view content ids. #content-core is present in every layout.
+        default_html = self.open("a-folder/a-doc/pagelet_view")
+        self.assertNotIn('id="content"', default_html)
+        self.assertIn('id="content-core"', default_html)
+
+
+class TestAjaxElementOrder(unittest.TestCase):
+    """The fixed element set in document order, with a real queued status
+    message. The trigger chain never fires on ``restrictedTraverse``, so
+    the ajax layer is marked on the request directly (the
+    test_fullscreen_contents precedent)."""
+
+    layer = FUNCTIONAL_TESTING
+
+    def setUp(self):
+        self.portal = self.layer["portal"]
+        self.request = self.layer["request"]
+        setRoles(self.portal, TEST_USER_ID, ["Manager"])
+        self.doc = api.content.create(
+            container=self.portal, type="Document", id="a-doc", title="A Document"
+        )
+
+    def render_ajax(self):
+        alsoProvides(self.request, IAjaxLayoutLayer)
+        return self.doc.restrictedTraverse("pagelet_view")()
+
+    def test_statusmessages_render_outside_and_before_content(self):
+        IStatusMessage(self.request).add("Changes saved.")
+        html = self.render_ajax()
+        message = html.index("portalMessage")
+        content = html.index('<article id="content">')
+        self.assertLess(message, content)
+
+    def test_first_h1_is_the_document_heading_then_content_core(self):
+        html = self.render_ajax()
+        first_h1 = html.index("<h1")
+        self.assertIn('class="documentFirstHeading"', html[first_h1 : html.index("</h1>")])
+        self.assertLess(html.index('<article id="content">'), first_h1)
+        self.assertLess(first_h1, html.index('id="content-core"'))
+
+    def test_ajax_region_sets_both_response_headers(self):
+        self.render_ajax()
+        response = self.request.response
+        self.assertEqual(response.getHeader("X-Theme-Disabled"), "1")
+        self.assertEqual(response.getHeader("X-Robots-Tag"), "noindex")

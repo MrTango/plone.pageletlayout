@@ -56,6 +56,16 @@ class IFullscreenLayoutLayer(IPlonePageletlayoutLayer):
     its name by the ``plone:pagelayout`` stanza in layouts.zcml."""
 
 
+class IAjaxLayoutLayer(IPlonePageletlayoutLayer):
+    """The ``ajax`` layout layer: the bare fragment-contract document
+    serving fetch/modal consumers — what stock ``ajax_load=1`` delivers.
+    Charset-only head, no toolbar, the fixed ``AjaxRegion`` element set
+    (docs/request-layouts.md, section 6). Request-only: no view defaults
+    to ajax, so its ``plone:pagelayout`` stanza (layouts.zcml) has no
+    view_marker; applied by the trigger chain via ``?pagelet_layout=ajax``
+    or the ``ajax_load`` alias."""
+
+
 class IFullScreenPagelet(IPagelet):
     """Static view marker: published pagelets whose *default* layout is
     ``fullscreen``.
