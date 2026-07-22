@@ -131,6 +131,19 @@ class ManagedLayoutRegionChromePagelet(ChromePagelet):
         return manager.render()
 
 
+def _render_element(region, name):
+    """Render one named element for a fixed-set region. In code, not a
+    ``provider:`` expression: the element must be looked up with
+    ``region.view``, the published pagelet (the BodyChromePagelet lesson)."""
+    provider = getMultiAdapter(
+        (region.context, region.request, region.view),
+        IContentProvider,
+        name=name,
+    )
+    provider.update()
+    return provider.render()
+
+
 class BodyOnlyRegion(ChromePagelet):
     """The fullscreen layout's page region: just the body element — no
     logo, nav, breadcrumbs or footer; the ``<head>`` plumbing and the
@@ -139,18 +152,38 @@ class BodyOnlyRegion(ChromePagelet):
     whenever the trigger chain applied the fullscreen layer
     (``?pagelet_layout=fullscreen`` or the IFullScreenPagelet static
     marker) and the managed region everywhere else (the recipe in
-    docs/directives.md). A class, not a template: the body provider must
-    be looked up with ``self.view``, the published pagelet (the
-    BodyChromePagelet lesson)."""
+    docs/directives.md)."""
 
     def render(self):
-        provider = getMultiAdapter(
-            (self.context, self.request, self.view),
-            IContentProvider,
-            name="plone.pageletlayout.body",
-        )
-        provider.update()
-        return provider.render()
+        return _render_element(self, "plone.pageletlayout.body")
+
+
+class AjaxRegion(ChromePagelet):
+    """The ajax layout's page region: the fragment contract's **fixed**
+    element set — statusmessages, then ``<article id="content">`` wrapping
+    contentheader + body (docs/request-layouts.md, section 6). Fixed by
+    construction: the element set is a consumer contract (stock Mockup
+    patterns extract ``.portalMessage``, the first ``h1`` and ``#content``),
+    not a site-configurable layout — ``viewlets.xml`` cannot reorder or
+    hide it. ``#content`` is ajax-only; ``#content-core`` (the body
+    element's wrapper) stays present in every layout."""
+
+    def update(self):
+        # Both ajax response headers live here — layer-bound code every
+        # ajax response renders, canonical spelling and alias alike.
+        setHeader = self.request.response.setHeader
+        # The contract must not depend on theme cooperation (Barceloneta's
+        # notheme rules key on the ajax_load spelling only).
+        setHeader("X-Theme-Disabled", "1")
+        # The charset-only head has no canonical link, so the noindex
+        # rides as a header (docs/request-layouts.md, section 9).
+        setHeader("X-Robots-Tag", "noindex")
+
+    def render(self):
+        messages = _render_element(self, "plone.pageletlayout.statusmessages")
+        header = _render_element(self, "plone.pageletlayout.contentheader")
+        body = _render_element(self, "plone.pageletlayout.body")
+        return f'{messages}<article id="content">{header}{body}</article>'
 
 
 class _UnthemedMixin:

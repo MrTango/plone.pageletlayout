@@ -220,6 +220,16 @@
       layer="plone.pageletlayout.interfaces.IFullscreenLayoutLayer"
       />
 
+  <!-- The ajax layout's region variant (docs/request-layouts.md, section 6):
+       on requests carrying the ajax layout layer (?pagelet_layout=ajax or
+       the ajax_load alias), the page region is the fixed fragment element
+       set; both ajax response headers are set in its update(). -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.pagelayout"
+      class=".layout.AjaxRegion"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
   <!-- The shared shell: ONE layout template for all twelve published
        pagelets. Registered standalone (there is deliberately no inline
        layout= — the frame is the site's to provide, not the pagelet's to
@@ -240,6 +250,28 @@
            .layout.LayoutAlbumPagelet
            .layout.LayoutFolderContentsPagelet"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- The ajax layout's frame variant: ONE readable file registered for the
+       same view classes as the shared shell, on the ajax layout layer — not
+       six empty-provider overrides (the shared frame's literal
+       viewport/generator lines could never be shadowed away, and the whole
+       fragment shape should read in one file: templates/ajax.pt). -->
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".layout.LayoutDocumentPagelet
+           .layout.LayoutNewsItemPagelet
+           .layout.LayoutEventPagelet
+           .layout.LayoutFilePagelet
+           .layout.LayoutImagePagelet
+           .layout.LayoutLinkPagelet
+           .layout.LayoutListingPagelet
+           .layout.LayoutSummaryPagelet
+           .layout.LayoutTabularPagelet
+           .layout.LayoutFullPagelet
+           .layout.LayoutAlbumPagelet
+           .layout.LayoutFolderContentsPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
       />
 
 </configure>
