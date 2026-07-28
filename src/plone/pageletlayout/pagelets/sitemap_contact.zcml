@@ -1,0 +1,55 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       Sitemap + contact-info, converted (see sitemap_contact.py). Both
+       stanzas mirror the stock ones (CMFPlone/browser/configure.zcml) — same
+       name, same for=, same permission, same allowed_interface — and differ
+       only in the layer and the framed body.
+       ====================================================================== -->
+
+  <!-- allowed_interface as in the stock stanza: the body template traverses
+       view/createSiteMap, which AccessControl guards. -->
+  <plone:pagelet
+      name="sitemap"
+      class=".sitemap_contact.SitemapPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      allowed_interface="Products.CMFPlone.browser.interfaces.ISitemapView"
+      permission="zope.Public"
+      />
+
+  <plone:pagelet
+      name="contact-info"
+      class=".sitemap_contact.ContactInfoPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <!-- The frames: the shared shell, and the ajax fragment document. -->
+  <plone:layout
+      template="templates/layout.pt"
+      for=".sitemap_contact.SitemapPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".sitemap_contact.SitemapPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+  <plone:layout
+      template="templates/layout.pt"
+      for=".sitemap_contact.ContactInfoPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".sitemap_contact.ContactInfoPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+</configure>

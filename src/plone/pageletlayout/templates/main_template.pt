@@ -1,0 +1,117 @@
+<metal:page define-macro="master">
+<tal:doctype replace="structure string:&lt;!DOCTYPE html&gt;" />
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      tal:define="portal_state python:context.restrictedTraverse('@@plone_portal_state');
+                  context_state python:context.restrictedTraverse('@@plone_context_state');
+                  plone_view python:context.restrictedTraverse('@@plone');
+                  icons python:context.restrictedTraverse('@@iconresolver');
+                  plone_layout python:context.restrictedTraverse('@@plone_layout');
+                  lang python:portal_state.language();
+                  view nocall:view | nocall:plone_view;
+                  dummy python:plone_layout.mark_view(view);
+                  portal_url python:portal_state.portal_url();
+                  checkPermission python:context.restrictedTraverse('portal_membership').checkPermission;
+                  ajax_include_head python:request.get('ajax_include_head', False);
+                  ajax_load python:False;
+                  layout_name python:context.restrictedTraverse('@@main_template').layout_name;
+                  dummy_deprecation python:context.restrictedTraverse('@@main_template').warn_macro_use(template);"
+      i18n:domain="plone"
+      tal:attributes="lang lang;">
+
+  <metal:cache tal:replace="structure provider:plone.httpheaders" />
+
+<head>
+  <meta charset="utf-8" />
+  <tal:title replace="structure provider:plone.pageletlayout.htmltitle" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <tal:meta replace="structure provider:plone.pageletlayout.headmeta" />
+  <tal:links replace="structure provider:plone.pageletlayout.headlinks" />
+
+  <metal:topslot define-slot="top_slot" />
+  <metal:headslot define-slot="head_slot" />
+
+  <tal:styles replace="structure provider:plone.pageletlayout.styles" />
+  <metal:styleslot define-slot="style_slot" />
+
+  <tal:scripts replace="structure provider:plone.pageletlayout.scripts" />
+  <metal:javascriptslot define-slot="javascript_head_slot" />
+
+  <meta name="generator" content="Plone - https://plone.org/" />
+</head>
+
+<body tal:define="isRTL portal_state/is_rtl;
+                  body_class python:'{} pagelet-layout-{}'.format(plone_layout.bodyClass(template, view), layout_name)"
+      tal:attributes="class body_class;
+                      dir python:isRTL and 'rtl' or 'ltr';
+                      python:context.restrictedTraverse('@@plone_patterns_settings')()">
+
+  <!-- toolbar: foreign subsystem, self-gating (as in layout.pt) -->
+  <tal:toolbar replace="structure provider:plone.toolbar" />
+
+  <!-- The pagelet frame, template-fixed: the same elements the managed
+       manager renders, in the canonical layout.ELEMENTS order — but called
+       one by one, because METAL slots must sit inline in the body region
+       and a provider's render is opaque to slot filling. Bridge pages are
+       therefore not storage-managed (the accepted tradeoff). -->
+  <div class="plone-layout">
+    <tal:logo replace="structure provider:plone.pageletlayout.logo" />
+    <tal:anontools replace="structure provider:plone.pageletlayout.anontools" />
+    <tal:globalnav replace="structure provider:plone.pageletlayout.globalnav" />
+    <tal:searchbox replace="structure provider:plone.pageletlayout.searchbox" />
+    <tal:breadcrumbs replace="structure provider:plone.pageletlayout.breadcrumbs" />
+    <tal:statusmessages replace="structure provider:plone.pageletlayout.statusmessages" />
+    <metal:statusslot define-slot="global_statusmessage" />
+
+    <!-- The body region: every classic slot lands inside the element-body
+         wrapper; the inner structure and slot names mirror the classic
+         master exactly (content > content macro > body > main >
+         title/description/content-core), so consumer fills bind unchanged.
+         prefs_main_template binds the nested content macro too. -->
+    <div class="element-body">
+      <metal:block define-slot="content">
+      <metal:content define-macro="content">
+        <metal:slot define-slot="body">
+          <article id="content">
+            <metal:bodytext define-slot="main">
+
+              <header class="element-contentheader">
+                <metal:title define-slot="content-title">
+                  <h1 tal:replace="structure context/@@title" />
+                </metal:title>
+                <metal:description define-slot="content-description">
+                  <p tal:replace="structure context/@@description" />
+                </metal:description>
+              </header>
+
+              <div id="content-core">
+                <metal:text define-slot="content-core" tal:content="nothing">
+                  Page body text
+                </metal:text>
+              </div>
+
+            </metal:bodytext>
+          </article>
+        </metal:slot>
+      </metal:content>
+      </metal:block>
+    </div>
+
+    <tal:copyright replace="structure provider:plone.pageletlayout.copyright" />
+    <tal:colophon replace="structure provider:plone.pageletlayout.colophon" />
+    <tal:siteactions replace="structure provider:plone.pageletlayout.siteactions" />
+  </div>
+
+  <!-- Diazo off — strictly AFTER the styles provider rendered, or
+       Barceloneta's production-css drops out of the head (the
+       PageletPage.__call__ rule; here document order stands in for
+       post-render). -->
+  <tal:themeoff define="dummy2 python:request.response.setHeader('X-Theme-Disabled', '1')" />
+
+</body>
+</html>
+
+</metal:page>

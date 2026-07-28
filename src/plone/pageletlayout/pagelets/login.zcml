@@ -1,0 +1,137 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       The login/password family (see login.py): the stock CMFPlone views
+       re-registered as framed pagelets on the layer, shadowing the classic
+       browser:page registrations. Stanzas mirror the stock ones
+       (CMFPlone/browser/login/configure.zcml): same names, same for=, same
+       permissions.
+       ====================================================================== -->
+
+  <!-- login, plus the BBB alias login_form (both stock names must shadow,
+       or login.pt stays reachable through the alias). -->
+  <plone:pagelet
+      name="login"
+      class=".login.LoginPagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+  <plone:pagelet
+      name="login_form"
+      class=".login.LoginPagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <plone:pagelet
+      name="login-help"
+      class=".login.LoginHelpPagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <plone:pagelet
+      name="logged-out"
+      class=".login.LoggedOutPagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <plone:pagelet
+      name="insufficient-privileges"
+      class=".login.InsufficientPrivilegesPagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <!-- Interface == the stock stanzas' for="*" (the directive's Tokens
+       field has no "*" special case): mail_password renders the response
+       view on the RegistrationTool context. -->
+  <plone:pagelet
+      name="mail_password_form"
+      class=".login.MailPasswordFormPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+  <plone:pagelet
+      name="mail_password_response"
+      class=".login.MailPasswordResponsePagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <plone:pagelet
+      name="passwordreset"
+      class=".login.PasswordResetPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope.Public"
+      />
+
+  <plone:pagelet
+      name="initial-login-password-change"
+      class=".login.InitialLoginPasswordChangePagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.SetOwnPassword"
+      />
+  <plone:pagelet
+      name="forced-password-change"
+      class=".login.ForcedPasswordChangePagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.SetOwnPassword"
+      />
+
+  <plone:pagelet
+      name="explainPWResetTool"
+      class=".login.ExplainPWResetToolPagelet"
+      for="plone.base.interfaces.IPWResetTool"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.ViewManagementScreens"
+      />
+
+  <!-- The family's frames: the shared shell, and the ajax fragment for
+       modal/fetch consumers (stock login opens in a pat-plone-modal via
+       ajax_load), exactly like the published-pagelet stanzas in
+       layout.zcml. -->
+  <plone:layout
+      template="templates/layout.pt"
+      for=".login.LoginPagelet
+           .login.LoginHelpPagelet
+           .login.LoggedOutPagelet
+           .login.InsufficientPrivilegesPagelet
+           .login.MailPasswordFormPagelet
+           .login.MailPasswordResponsePagelet
+           .login.PasswordResetPagelet
+           .login.InitialLoginPasswordChangePagelet
+           .login.ForcedPasswordChangePagelet
+           .login.ExplainPWResetToolPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".login.LoginPagelet
+           .login.LoginHelpPagelet
+           .login.LoggedOutPagelet
+           .login.InsufficientPrivilegesPagelet
+           .login.MailPasswordFormPagelet
+           .login.MailPasswordResponsePagelet
+           .login.PasswordResetPagelet
+           .login.InitialLoginPasswordChangePagelet
+           .login.ForcedPasswordChangePagelet
+           .login.ExplainPWResetToolPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+</configure>

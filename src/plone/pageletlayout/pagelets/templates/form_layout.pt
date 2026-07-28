@@ -1,0 +1,47 @@
+<tal:doctype replace="structure string:&lt;!DOCTYPE html&gt;" />
+<!-- The wrapped-form frame (S1 seam, pagelets/forms.py): layout.pt's twin
+     for FormWrapper views, which render through an adapter lookup instead
+     of PageletPage.__call__. The two jobs __call__ owns move into the
+     template: response headers via the plone.httpheaders provider, and the
+     theme-off header at document end (strictly AFTER the styles provider —
+     the PageletPage.__call__ rule; document order stands in for
+     post-render, as in the bridge frame). view/layout_name is stamped by
+     FormFrameTemplateFactory at lookup time. -->
+<html tal:define="portal_state python:context.restrictedTraverse('@@plone_portal_state');
+                  plone_layout python:context.restrictedTraverse('@@plone_layout');
+                  dummy python:plone_layout.mark_view(view);
+                  isRTL portal_state/is_rtl;"
+      tal:attributes="lang portal_state/language">
+
+  <metal:cache tal:replace="structure provider:plone.httpheaders" />
+
+<head>
+  <meta charset="utf-8" />
+  <tal:title replace="structure provider:plone.pageletlayout.htmltitle" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <tal:meta replace="structure provider:plone.pageletlayout.headmeta" />
+  <tal:links replace="structure provider:plone.pageletlayout.headlinks" />
+  <tal:styles replace="structure provider:plone.pageletlayout.styles" />
+  <tal:scripts replace="structure provider:plone.pageletlayout.scripts" />
+  <meta name="generator" content="Plone - https://plone.org/" />
+</head>
+<body tal:define="body_class python:'{} pagelet-layout-{}'.format(plone_layout.bodyClass(template, view), view.layout_name)"
+      tal:attributes="class body_class;
+                      dir python:isRTL and 'rtl' or 'ltr';
+                      python:context.restrictedTraverse('@@plone_patterns_settings')()">
+
+  <!-- toolbar: the only exception — foreign subsystem, self-gating -->
+  <tal:toolbar replace="structure provider:plone.toolbar" />
+
+  <div class="plone-layout">
+    <!-- The single provider point: the managed whole-body manager. The
+         form-specific elements (body = view/contents, contentheader =
+         form label) shadow the stock ones on the view=IFormWrapper
+         dimension — the manager itself is untouched. -->
+    <tal:layout replace="structure provider:plone.pageletlayout.pagelayout" />
+  </div>
+
+  <tal:themeoff define="dummy2 python:request.response.setHeader('X-Theme-Disabled', '1')" />
+
+</body>
+</html>

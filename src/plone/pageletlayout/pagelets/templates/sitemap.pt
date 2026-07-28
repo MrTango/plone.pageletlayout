@@ -1,0 +1,27 @@
+<div class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone">
+
+  <!-- Classically this heading + lead sat in main_template's main slot under
+       the context's own content-title; a framed page's content header is
+       shadowed empty, so they are the page's heading here (see
+       docs/porting-main-template.md, the content-title slot row). The two
+       `disable_plone.*column` request flags the classic top_slot set are gone
+       with the columns: the pagelet layout has no portlet rails. -->
+  <h1 class="documentFirstHeading" i18n:translate="label_site_map">Site map</h1>
+
+  <p class="documentDescription" i18n:translate="description_site_map">
+    An overview of the available content on this site. Keep the pointer still
+    over an item for a few seconds to get its description.
+  </p>
+
+  <!-- The tree itself is built in Python (pagelets/sitemap_contact.py,
+       _renderLevel + sitemap_item.pt) — a recursive structure the stock view
+       assembles as a string. #content-core is NOT repeated here: the framed
+       body element already emits it. -->
+  <ul id="portal-sitemap" class="plone-sitemap">
+    <tal:sitemap replace="structure view/createSiteMap" />
+  </ul>
+
+</div>

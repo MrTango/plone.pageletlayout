@@ -1,0 +1,9 @@
+<header class="element-contentheader" i18n:domain="plone"
+        tal:define="wrapper nocall:view/view">
+  <h1 class="documentFirstHeading"
+      tal:content="wrapper/label">form label</h1>
+  <p class="documentDescription"
+     tal:define="description wrapper/description | nothing"
+     tal:condition="description"
+     tal:content="description">form description</p>
+</header>

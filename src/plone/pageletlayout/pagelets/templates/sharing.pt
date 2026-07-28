@@ -1,0 +1,195 @@
+<div class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone"
+     tal:define="context_state context/@@plone_context_state;
+                 icons python:context.restrictedTraverse('@@iconresolver');">
+
+  <div class="alert alert-info"
+       role="alert"
+       tal:condition="context_state/is_default_page">
+    <strong i18n:translate="">Info</strong>
+    <span tal:omit-tag="" i18n:translate="help_sharing_page_default_page">
+      You are adjusting the sharing privileges for a default view in a container.
+      To adjust them for the entire container,
+      <a class="alert-link"
+         tal:define="folder context_state/folder"
+         href="${folder/absolute_url}/sharing"
+         i18n:name="go_here"
+         i18n:translate="help_sharing_go_here">go here</a>.
+    </span>
+  </div>
+
+  <h1 class="documentFirstHeading" i18n:translate="heading_currently_assigned_shares">
+    Sharing for
+    <q tal:content="context/Title" i18n:name="folder">title</q>
+  </h1>
+
+  <div class="documentDescription" i18n:translate="description_sharing_control">
+    You can control who can view and edit your item using the list below.
+  </div>
+
+  <!-- The principal search: its own little form, posting back to the page.
+       No Save button, so handle_form() only re-reads search_term. -->
+  <form method="post" action="${context/absolute_url}/@@sharing" role="search">
+    <input name="form.submitted:boolean" type="hidden" value="True" />
+    <div class="input-group">
+      <input class="form-control"
+             id="sharing-user-group-search"
+             name="search_term"
+             size="30"
+             type="text"
+             placeholder="Search for user or group"
+             title="Search for user or group"
+             value="${request/search_term|nothing}"
+             i18n:attributes="title; placeholder" />
+      <button class="btn btn-primary"
+              id="sharing-search-button"
+              name="form.button.Search"
+              type="submit"
+              value="Search"
+              i18n:attributes="value label_search"
+              i18n:translate="label_search">Search</button>
+    </div>
+  </form>
+
+  <form method="post"
+        class="plone-stack"
+        action="${context/absolute_url}/@@sharing">
+
+    <input name="form.submitted:boolean" type="hidden" value="True" />
+
+    <!-- .table-responsive belongs on the wrapper, not the table (it is an
+         overflow container) — the stock markup had it on the <table>, where
+         Bootstrap 5 ignores it. -->
+    <div class="table-responsive" id="user-group-sharing-container">
+
+      <!-- The role matrix is also published on its own: @@updateSharingInfo
+           renders THIS macro through plone.app.workflow's macro_wrapper and
+           returns it as a JSON fragment. The wrapper supplies only `view`
+           and `here`, so every name the matrix needs is defined right here
+           rather than inherited from the page — which is what made the
+           stock endpoint raise NameError: `icons` and friends came from
+           main_template's globals and simply were not there. -->
+      <table class="table table-bordered table-striped"
+             id="user-group-sharing"
+             metal:define-macro="user-group-sharing"
+             summary="Current sharing permissions"
+             i18n:domain="plone"
+             i18n:attributes="summary summary_assigned_roles;"
+             tal:define="portal_state context/@@plone_portal_state;
+                         portal portal_state/portal;
+                         portal_url portal_state/portal_url;
+                         checkPermission nocall:context/portal_membership/checkPermission;
+                         can_view_groups python:checkPermission('Plone Site Setup: Users and Groups', portal);
+                         icons python:context.restrictedTraverse('@@iconresolver');
+                         available_roles view/roles;
+                         role_settings view/role_settings;">
+
+        <thead id="user-group-sharing-head" metal:define-macro="user-group-sharing-head">
+          <tr tal:condition="role_settings">
+            <th i18n:translate="label_name">Name</th>
+            <th class="nosort"
+                tal:repeat="role available_roles"
+                tal:content="role/title"
+                i18n:translate=""></th>
+          </tr>
+        </thead>
+
+        <tbody id="user-group-sharing-settings" metal:define-macro="user-group-sharing-settings">
+          <tal:entries repeat="entry role_settings">
+            <tr tal:define="is_group python:entry['type'] == 'group';
+                            disabled entry/disabled | python:False;
+                            oddrow repeat/entry/odd;
+                            sticky python:entry['id'] in view.STICKY;"
+                tal:attributes="class python:oddrow and 'odd' or 'even'">
+
+              <td tal:attributes="title entry/id">
+                <tal:icon tal:condition="is_group"
+                          tal:replace="structure python:icons.tag('people', tag_alt='Group')" />
+                <tal:icon tal:condition="not:is_group"
+                          tal:replace="structure python:icons.tag('person', tag_alt='User')" />
+
+                <a tal:omit-tag="python:not is_group or not can_view_groups or entry.get('id') == 'AuthenticatedUsers'"
+                   href="${portal_url}/@@usergroup-groupmembership?groupname=${entry/id}">
+                  <span tal:replace="entry/title">Principal</span>
+                  <span class="discreet"
+                        tal:condition="not:sticky"
+                        i18n:ignore="true">(${entry/id})</span>
+                </a>
+
+                <input name="entries.id:records"
+                       type="hidden"
+                       tal:condition="not:disabled"
+                       tal:attributes="value entry/id" />
+                <input name="entries.type:records"
+                       type="hidden"
+                       tal:condition="not:disabled"
+                       tal:attributes="value entry/type" />
+              </td>
+
+              <td class="listingCheckbox" tal:repeat="role available_roles">
+                <tal:block define="entry_role python:entry['roles'][role['id']]">
+                  <tal:icon tal:condition="python:entry_role == 'global'"
+                            tal:replace="structure python:icons.tag('globe', tag_alt='Global')" />
+                  <tal:icon tal:condition="python:entry_role == 'acquired'"
+                            tal:replace="structure python:icons.tag('diagram-2', tag_alt='Inherited')" />
+                  <tal:block condition="python:entry_role in (True, False)">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           value="True"
+                           tal:attributes="name string:entries.role_${role/id}:records;
+                                           checked python:entry_role and 'checked' or None;
+                                           disabled python:disabled or None;" />
+                  </tal:block>
+                </tal:block>
+              </td>
+            </tr>
+          </tal:entries>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="field" id="field-inherit" tal:condition="view/can_edit_inherit">
+      <div class="form-check">
+        <input class="form-check-input single-checkbox-bool-widget bool-field"
+               id="inherit"
+               name="inherit:boolean"
+               type="checkbox"
+               value="1"
+               tal:attributes="checked python:view.inherited() and 'checked' or None" />
+        <label class="form-check-label" for="inherit" i18n:translate="label_inherit_local_roles">
+          Inherit permissions from higher levels
+        </label>
+        <small class="form-text" i18n:translate="help_inherit_local_roles">
+          By default, permissions from the container of this item are inherited.
+          If you disable this, only the explicitly defined sharing permissions will
+          be valid.
+          In the overview, the symbol
+          <tal:icon tal:replace="structure python:icons.tag('diagram-2', tag_alt='Inherited')"
+                    i18n:name="image_link_icon" />
+          indicates an inherited value. Similarly, the symbol
+          <tal:icon tal:replace="structure python:icons.tag('globe', tag_alt='Global')"
+                    i18n:name="image_confirm_icon" />
+          indicates a global role, which is managed by the site administrator.
+        </small>
+      </div>
+    </div>
+
+    <div class="plone-cluster" style="--plone-cluster-space: var(--plone-space-2xs)">
+      <button class="btn btn-primary"
+              id="sharing-save-button"
+              name="form.button.Save"
+              type="submit"
+              i18n:translate="label_save">Save</button>
+      <button class="btn btn-secondary"
+              name="form.button.Cancel"
+              type="submit"
+              i18n:translate="label_cancel">Cancel</button>
+    </div>
+
+    <input tal:replace="structure context/@@authenticator/authenticator" />
+  </form>
+
+</div>

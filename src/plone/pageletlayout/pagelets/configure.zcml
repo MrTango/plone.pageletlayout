@@ -9,4 +9,27 @@
   <!-- The whole-body, one-manager layout — THE pagelet layout. -->
   <include file="layout.zcml" />
 
+  <!-- The S1 wrapped-form layout seam: FormWrapper views render the frame
+       directly (no macro path, no bridge). -->
+  <include file="forms.zcml" />
+
+  <!-- The framed-page chrome shadows (view=IFramedPage): the mechanism for
+       converting classic self-rendering pages. -->
+  <include file="framed.zcml" />
+
+  <!-- The login/password family, converted (classic-coverage ticket 06). -->
+  <include file="login.zcml" />
+
+  <!-- @@search, converted (classic-coverage ticket 07). -->
+  <include file="search.zcml" />
+
+  <!-- @@sharing, converted (classic-coverage ticket 08). -->
+  <include file="sharing.zcml" />
+
+  <!-- The content actions, converted (classic-coverage ticket 09). -->
+  <include file="content_actions.zcml" />
+
+  <!-- Sitemap + contact-info, converted (classic-coverage ticket 10). -->
+  <include file="sitemap_contact.zcml" />
+
 </configure>

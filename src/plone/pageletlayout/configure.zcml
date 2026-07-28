@@ -42,6 +42,20 @@
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
 
+  <!-- The main_template compatibility bridge (see bridge.py): shadows
+       CMFPlone's main_template view on our layer, so every unconverted
+       classic consumer binds the pagelet frame's master/content macros.
+       Same for="*", public permission and allowed_interface as the stock
+       registration — only the layer (and the frame) differ. -->
+  <browser:page
+      name="main_template"
+      for="*"
+      class=".bridge.BridgedMainTemplate"
+      allowed_interface="Products.CMFPlone.browser.interfaces.IMainTemplate"
+      permission="zope.Public"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
   <genericsetup:registerProfile
       name="default"
       title="Plonetheme Pagelet Base"

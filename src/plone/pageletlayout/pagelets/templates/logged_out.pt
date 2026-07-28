@@ -1,0 +1,25 @@
+<tal:notloggedoutafterall
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    i18n:domain="plone">
+
+  <h1 class="documentFirstHeading"
+      i18n:translate="heading_quit_to_log_out">Still logged in as a Zope user</h1>
+
+  <div class="documentDescription" i18n:translate="description_quit_to_log_out">
+    You are logged in via HTTP authentication (i.e. the Zope Management
+    Interface). In order to log out, you must:
+  </div>
+
+  <div id="content-core">
+    <p i18n:translate=""
+       tal:define="portal_url context/@@plone_portal_state/portal_url">
+      <a i18n:name="text_logged_out_link"
+         tal:attributes="href string:${portal_url}/@@plone-root-logout"
+         i18n:translate="">
+        Visit this link
+      </a>
+      and click 'Cancel' when prompted with an authentication prompt.
+    </p>
+  </div>
+</tal:notloggedoutafterall>

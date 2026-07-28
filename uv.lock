@@ -2911,6 +2911,66 @@ wheels = [
 ]
 
 [[package]]
+name = "plone-pageletlayout"
+version = "1.0.0a1"
+source = { editable = "." }
+dependencies = [
+    { name = "paste" },
+    { name = "plone" },
+    { name = "plone-app-caching" },
+    { name = "plone-app-upgrade" },
+    { name = "plone-app-viewletmanager" },
+    { name = "plone-app-z3cform" },
+    { name = "plone-classicui" },
+    { name = "plone-z3cform" },
+    { name = "setuptools" },
+    { name = "z3c-pagelet" },
+    { name = "z3c-template" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "plone-app-testing" },
+    { name = "plone-testing" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-plone" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "invoke" },
+    { name = "watchdog" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "paste" },
+    { name = "plone", specifier = ">=6.2" },
+    { name = "plone-app-caching" },
+    { name = "plone-app-testing", marker = "extra == 'test'" },
+    { name = "plone-app-upgrade" },
+    { name = "plone-app-viewletmanager" },
+    { name = "plone-app-z3cform" },
+    { name = "plone-classicui" },
+    { name = "plone-testing", marker = "extra == 'test'" },
+    { name = "plone-z3cform" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pytest-cov", marker = "extra == 'test'" },
+    { name = "pytest-plone", marker = "extra == 'test'", specifier = ">=0.5.0" },
+    { name = "setuptools", specifier = "<81" },
+    { name = "z3c-pagelet" },
+    { name = "z3c-template" },
+]
+provides-extras = ["test"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "invoke" },
+    { name = "watchdog" },
+]
+
+[[package]]
 name = "plone-portlet-collection"
 version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -3363,62 +3423,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/17/85/e1f69f4bbc08febf15854371a33b044bf568cbb66c7736130d14fce5453c/plonetheme_barceloneta-4.0.3.tar.gz", hash = "sha256:20d5c123f61c01199ba5593352f8c778b3ad0113c90780b506e8490f338665fd", size = 6210259, upload-time = "2026-05-18T07:54:11.424Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/cf/8b1b95629a31805cc111b994999b614a7e5c0ab657108880858f4adfd111/plonetheme_barceloneta-4.0.3-py3-none-any.whl", hash = "sha256:fe58e19896adcece244882fff4362b2feca108889b8c7804d39936ff4524339f", size = 6198147, upload-time = "2026-05-18T07:53:20.949Z" },
-]
-
-[[package]]
-name = "plone-pageletlayout"
-version = "1.0.0a1"
-source = { editable = "." }
-dependencies = [
-    { name = "paste" },
-    { name = "plone" },
-    { name = "plone-app-caching" },
-    { name = "plone-app-upgrade" },
-    { name = "plone-app-viewletmanager" },
-    { name = "plone-classicui" },
-    { name = "setuptools" },
-    { name = "z3c-pagelet" },
-    { name = "z3c-template" },
-]
-
-[package.optional-dependencies]
-test = [
-    { name = "plone-app-testing" },
-    { name = "plone-testing" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-plone" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "invoke" },
-    { name = "watchdog" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "paste" },
-    { name = "plone", specifier = ">=6.2" },
-    { name = "plone-app-caching" },
-    { name = "plone-app-testing", marker = "extra == 'test'" },
-    { name = "plone-app-upgrade" },
-    { name = "plone-app-viewletmanager" },
-    { name = "plone-classicui" },
-    { name = "plone-testing", marker = "extra == 'test'" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-cov", marker = "extra == 'test'" },
-    { name = "pytest-plone", marker = "extra == 'test'", specifier = ">=0.5.0" },
-    { name = "setuptools", specifier = "<81" },
-    { name = "z3c-pagelet" },
-    { name = "z3c-template" },
-]
-provides-extras = ["test"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "invoke" },
-    { name = "watchdog" },
 ]
 
 [[package]]

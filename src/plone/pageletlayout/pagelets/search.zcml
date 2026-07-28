@@ -1,0 +1,42 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       @@search, converted (see search.py). The stanza mirrors the stock one
+       (Products/CMFPlone/browser/configure.zcml): same name, same for=, same
+       permission — only the layer (and the framed body) differ.
+       ====================================================================== -->
+  <plone:pagelet
+      name="search"
+      class=".search.SearchPagelet"
+      for="plone.base.interfaces.INavigationRoot"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
+      />
+
+  <!-- The frames: the shared shell, and the ajax fragment — which is not an
+       optional extra here but the page's own result-updating path, since
+       pat-search refetches this very URL with ajax_load=1. -->
+  <plone:layout
+      template="templates/layout.pt"
+      for=".search.SearchPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".search.SearchPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+  <!-- The converted page's head markup (the classic head_slot), shadowing
+       the base head-links element on the view=ISearchPagelet dimension. -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.headlinks"
+      class=".search.SearchHeadLinksChromePagelet"
+      view="plone.pageletlayout.interfaces.ISearchPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+</configure>
