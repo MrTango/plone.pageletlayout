@@ -1,0 +1,47 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       @@sharing, converted (see sharing.py). The stanzas mirror the stock
+       ones (plone/app/workflow/browser/configure.zcml): same names, same
+       for=, same permission — only the layer (and the framed body) differ.
+       ====================================================================== -->
+  <plone:pagelet
+      name="sharing"
+      class=".sharing.SharingPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="plone.DelegateRoles"
+      />
+
+  <!-- The role matrix as a JSON fragment. Re-registered on the layer for the
+       same reason the page is: it renders the *page template's* macro, so it
+       must resolve the converted body — and it is the second registration
+       carrying the classic sharing.pt, i.e. the other half of the ratchet
+       click-down. A plain browser:page, because it returns JSON from an
+       attribute and has no chrome to frame. -->
+  <browser:page
+      name="updateSharingInfo"
+      class=".sharing.SharingInfoFragment"
+      for="*"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="plone.DelegateRoles"
+      />
+
+  <!-- The frames: the shared shell, and the ajax fragment document (the
+       sharing page is reachable with ajax_load=1 like every framed page). -->
+  <plone:layout
+      template="templates/layout.pt"
+      for=".sharing.SharingPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".sharing.SharingPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+</configure>

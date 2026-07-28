@@ -1,0 +1,24 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       Framed classic pages (see framed.py): the two chrome elements every
+       FramedPage view resolves instead of the stock ones, keyed on the
+       view=IFramedPage dimension like the S1 form shadows (forms.zcml).
+       ====================================================================== -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.body"
+      class=".framed.FramedBodyChromePagelet"
+      view="plone.pageletlayout.interfaces.IFramedPage"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.contentheader"
+      class=".framed.EmptyContentHeaderChromePagelet"
+      view="plone.pageletlayout.interfaces.IFramedPage"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+</configure>

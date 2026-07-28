@@ -6,9 +6,21 @@ from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.schema import InterfaceField
 from zope.schema import TextLine
 
+from plone.app.z3cform.interfaces import IPloneFormLayer
 
-class IPlonePageletlayoutLayer(IDefaultBrowserLayer):
-    """Marker interface that defines a browser layer."""
+
+class IPlonePageletlayoutLayer(IPloneFormLayer, IDefaultBrowserLayer):
+    """Marker interface that defines a browser layer.
+
+    Extends ``IPloneFormLayer`` deliberately: the S1 form-layout seam
+    (pagelets/forms.py) registers the wrapped-form frame for
+    ``(IFormWrapper, IPlonePageletlayoutLayer)``, which must beat
+    plone.app.z3cform's ``(IFormWrapper, IPloneFormLayer)`` registration.
+    Sibling browser layers tie-break on the request's marking order — an
+    install-order accident per site; inheritance makes "more specific"
+    true by construction. Every Plone 6 site has the form layer installed
+    (plone.app.z3cform is core), so the subsumption never adds behavior a
+    pageletlayout request didn't already have."""
 
 
 class IPageLayout(Interface):
@@ -64,6 +76,30 @@ class IAjaxLayoutLayer(IPlonePageletlayoutLayer):
     to ajax, so its ``plone:pagelayout`` stanza (layouts.zcml) has no
     view_marker; applied by the trigger chain via ``?pagelet_layout=ajax``
     or the ``ajax_load`` alias."""
+
+
+class IFramedPage(IPagelet):
+    """Published pagelets converted from classic self-rendering pages.
+
+    The FramedPage mechanism (page.py): the stock view class keeps its
+    control flow — ``__call__`` redirect checks, POST handling, multi-
+    template dispatch — and only its class-bound templates are swapped for
+    ``FramedTemplate``s, which render the pagelet frame with the wrapped
+    body-only template as the page body. The marker is the ``view=``
+    dimension the framed chrome shadows key on (pagelets/framed.zcml):
+    the body element renders the bound body, the contentheader element is
+    empty (a framed page's heading lives in its body template, per
+    docs/porting-main-template.md)."""
+
+
+class ISearchPagelet(IFramedPage):
+    """The converted ``@@search`` (pagelets/search.py).
+
+    A framed page like any other; the marker exists because search is the
+    first converted page that needs markup of its own in the ``<head>`` —
+    the classic template's ``head_slot``. It is the ``view=`` dimension a
+    head element shadows on, the same specificity move the framed body and
+    content header make one level up."""
 
 
 class IFullScreenPagelet(IPagelet):

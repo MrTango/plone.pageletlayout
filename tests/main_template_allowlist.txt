@@ -1,0 +1,118 @@
+# main_template macro-consumer allowlist (the static ratchet, map ticket 04).
+#
+# Every entry is a template file, normalized to its path below site-packages
+# (or the package src root), that is reachable on the pageletlayout layer and
+# still renders through the bridge's deprecated macro path.
+# tests/test_static_ratchet.py compares the registry walk against this file:
+# an entry appearing that is not listed FAILS (no new macro consumers — build
+# on plone:pagelet, see docs/porting-main-template.md); a listed entry that is
+# no longer collected FAILS too (the ratchet clicks down — delete the line).
+#
+# The bridge is permanent, so the steady state of this list is the
+# out-of-scope admin long tail. The classic-coverage map's destination check
+# is that the sections below marked with a ticket are GONE, not that the
+# file is empty.
+
+# -- steady-state long tail (renders correctly on the permanent bridge; -----
+# -- conversion is out of scope for the classic-coverage map) ----------------
+Products/CMFEditions/browser/templates/diff.pt
+Products/CMFEditions/browser/templates/version_file_view.pt
+Products/CMFEditions/browser/templates/version_image_view.pt
+Products/CMFEditions/browser/templates/version_metadata_view.pt
+Products/CMFEditions/browser/templates/versions_history_form.pt
+Products/CMFPlacefulWorkflow/browser/placeful_workflow_configuration.pt
+Products/CMFPlacefulWorkflow/browser/placeful_workflow_policy_mapping.pt
+Products/CMFPlacefulWorkflow/browser/workflow_policies_controlpanel.pt
+Products/CMFPlone/browser/templates/accessibility-info.pt
+Products/CMFPlone/browser/templates/author.pt
+Products/CMFPlone/browser/templates/error_message.pt
+Products/CMFPlone/browser/templates/five_template.pt
+Products/CMFPlone/browser/templates/recently_modified.pt
+Products/CMFPlone/browser/templates/recently_published.pt
+Products/CMFPlone/browser/templates/test_rendering.pt
+Products/CMFPlone/browser/templates/test_rendering_cheatsheet.pt
+Products/CMFPlone/browser/templates/test_rendering_icons.pt
+Products/CMFPlone/controlpanel/browser/actions.pt
+Products/CMFPlone/controlpanel/browser/controlpanel_usergroups_layout.pt
+Products/CMFPlone/controlpanel/browser/emaillogin.pt
+Products/CMFPlone/controlpanel/browser/error_log_form.pt
+Products/CMFPlone/controlpanel/browser/error_log_show_entry.pt
+Products/CMFPlone/controlpanel/browser/filter_controlpanel.pt
+Products/CMFPlone/controlpanel/browser/maintenance.pt
+Products/CMFPlone/controlpanel/browser/overview.pt
+Products/CMFPlone/controlpanel/browser/quickinstaller.pt
+Products/CMFPlone/controlpanel/browser/redirects-controlpanel.pt
+Products/CMFPlone/controlpanel/browser/redirects-manage.pt
+Products/CMFPlone/controlpanel/browser/relations_inspect.pt
+Products/CMFPlone/controlpanel/browser/relations_rebuild.pt
+Products/CMFPlone/controlpanel/browser/resourceregistry.pt
+Products/CMFPlone/controlpanel/browser/types.pt
+Products/CMFPlone/controlpanel/browser/usergroups_groupdetails.pt
+Products/CMFPlone/controlpanel/browser/usergroups_groupmembership.pt
+Products/CMFPlone/controlpanel/browser/usergroups_groupsoverview.pt
+Products/CMFPlone/controlpanel/browser/usergroups_usermembership.pt
+Products/CMFPlone/controlpanel/browser/usergroups_usersoverview.pt
+plone/app/caching/browser/controlpanel.pt
+plone/app/caching/browser/import.pt
+plone/app/caching/browser/purge.pt
+plone/app/caching/browser/ramcache.pt
+plone/app/content/browser/constraintypes.pt
+plone/app/content/browser/folderfactories.pt
+plone/app/content/browser/full_review_list.pt
+plone/app/content/browser/templates/select_default_page.pt
+plone/app/content/browser/templates/select_default_view.pt
+plone/app/contentrules/browser/templates/contentrules-pageform.pt
+plone/app/contentrules/browser/templates/controlpanel.pt
+plone/app/contentrules/browser/templates/manage-assignments.pt
+plone/app/contentrules/browser/templates/manage-elements.pt
+plone/app/contenttypes/browser/templates/document.pt
+plone/app/contenttypes/browser/templates/file.pt
+plone/app/contenttypes/browser/templates/full_view.pt
+plone/app/contenttypes/browser/templates/image.pt
+plone/app/contenttypes/browser/templates/link.pt
+plone/app/contenttypes/browser/templates/listing.pt
+plone/app/contenttypes/browser/templates/listing_album.pt
+plone/app/contenttypes/browser/templates/listing_summary.pt
+plone/app/contenttypes/browser/templates/listing_tabular.pt
+plone/app/contenttypes/browser/templates/newsitem.pt
+plone/app/dexterity/browser/container.pt
+plone/app/dexterity/browser/folder_listing.pt
+plone/app/dexterity/browser/item.pt
+plone/app/dexterity/browser/modeleditor.pt
+plone/app/dexterity/browser/tabbed_forms.pt
+plone/app/dexterity/browser/typesformwrapper.pt
+plone/app/discussion/browser/controlpanel.pt
+plone/app/event/browser/event_listing.pt
+plone/app/event/browser/event_view.pt
+plone/app/iterate/browser/cancel.pt
+plone/app/iterate/browser/checkin.pt
+plone/app/iterate/browser/checkout.pt
+plone/app/iterate/browser/diff.pt
+plone/app/linkintegrity/browser/update.pt
+plone/app/multilingual/browser/templates/disconnect_translation.pt
+plone/app/multilingual/browser/templates/modify_translations.pt
+plone/app/portlets/browser/templates/manage-content-type.pt
+plone/app/portlets/browser/templates/manage-contextual.pt
+plone/app/portlets/browser/templates/manage-dashboard.pt
+plone/app/portlets/browser/templates/manage-group-dashboard.pt
+plone/app/portlets/browser/templates/manage-group.pt
+plone/app/portlets/browser/templates/topbar-manage-portlets.pt
+plone/app/portlets/browser/templates/z3cform-portlets-pageform.pt
+plone/app/portlets/dashboard/dashboard.pt
+plone/app/portlets/dashboard/user_actions.pt
+plone/app/registry/browser/templates/controlpanel_layout.pt
+plone/app/registry/browser/templates/delete_layout.pt
+plone/app/registry/browser/templates/edit_layout.pt
+plone/app/registry/browser/templates/records.pt
+plone/app/theming/browser/controlpanel.pt
+plone/app/users/browser/account-configlet.pt
+plone/app/users/browser/account-panel.pt
+plone/app/users/browser/membersearch_form.pt
+plone/app/users/browser/newuser_form.pt
+plone/app/users/browser/register_form.pt
+plone/app/users/browser/registered.pt
+plone/app/users/browser/schema_layout.pt
+plone/app/viewletmanager/manage-viewlets.pt
+plone/app/z3cform/templates/form.pt
+plone/dexterity/browser/item.pt
+plone/namedfile/test.pt

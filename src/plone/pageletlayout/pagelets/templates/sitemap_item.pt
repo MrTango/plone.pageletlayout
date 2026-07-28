@@ -1,0 +1,15 @@
+<tal:item xmlns:tal="http://xml.zope.org/namespaces/tal"
+          define="node             options/node;
+                  item_url         node/getURL;
+                  item_remote_url  node/getRemoteUrl;
+                  use_remote_url   node/useRemoteUrl | nothing;
+                  is_current       node/currentItem;
+                  item_state_class string:state-${node/normalized_review_state};
+                  item_type_class  string:contenttype-${node/normalized_portal_type}">
+  <a tal:attributes="href python:use_remote_url and item_remote_url or item_url;
+                     title node/Description;
+                     aria-current python:'page' if is_current else None;
+                     class string:$item_state_class $item_type_class">
+    <span tal:content="node/Title">Selected Item Title</span>
+  </a>
+</tal:item>

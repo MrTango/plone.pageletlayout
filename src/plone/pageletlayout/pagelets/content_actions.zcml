@@ -1,0 +1,104 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       The content actions, converted (see content_actions.py). Every stanza
+       mirrors the stock one — same name, same for=, same permission — and
+       differs only in the layer and the framed body.
+
+       Stock originals:
+         plone/app/content/browser/configure.zcml   (the first three names)
+         plone/app/layout/viewlets/configure.zcml   (historyview)
+       ====================================================================== -->
+
+  <plone:pagelet
+      name="delete_confirmation"
+      class=".content_actions.DeleteConfirmationPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.DeleteObjects"
+      />
+
+  <!-- Both stock names for the rename form share one class (and so one
+       ``template`` attribute): shadowing only one of them would leave
+       object_rename.pt in the ratchet walk — the ticket-08 lesson. -->
+  <plone:pagelet
+      name="object_rename"
+      class=".content_actions.RenamePagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.ModifyPortalContent"
+      />
+  <plone:pagelet
+      name="folder_rename"
+      class=".content_actions.RenamePagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.ModifyPortalContent"
+      />
+
+  <plone:pagelet
+      name="content_status_history"
+      class=".content_actions.ContentStatusHistoryPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.ModifyPortalContent"
+      />
+
+  <plone:pagelet
+      name="historyview"
+      class=".content_actions.HistoryViewPagelet"
+      for="zope.interface.Interface"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="cmf.ModifyPortalContent"
+      />
+
+  <!-- The frames: the shared shell, and the ajax fragment document (each
+       page is reachable with ajax_load=1 like every framed page). -->
+  <plone:layout
+      template="templates/layout.pt"
+      for=".content_actions.DeleteConfirmationPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".content_actions.DeleteConfirmationPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+  <plone:layout
+      template="templates/layout.pt"
+      for=".content_actions.RenamePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".content_actions.RenamePagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+  <plone:layout
+      template="templates/layout.pt"
+      for=".content_actions.ContentStatusHistoryPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".content_actions.ContentStatusHistoryPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+  <plone:layout
+      template="templates/layout.pt"
+      for=".content_actions.HistoryViewPagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:layout
+      template="templates/ajax.pt"
+      for=".content_actions.HistoryViewPagelet"
+      layer="plone.pageletlayout.interfaces.IAjaxLayoutLayer"
+      />
+
+</configure>

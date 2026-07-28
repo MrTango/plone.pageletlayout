@@ -1,0 +1,15 @@
+<div class="plone-stack"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     i18n:domain="plone">
+
+  <!-- Classically an <h3> under main_template's default content-title (the
+       context's own title). A framed page's content header is shadowed
+       empty, so the page's heading is this one — promoted to the h1 every
+       converted page carries (docs/porting-main-template.md, the
+       content-title slot row). -->
+  <h1 class="documentFirstHeading" i18n:translate="label_history">History</h1>
+
+  <div tal:replace="structure context/@@contenthistory">Content History</div>
+
+</div>

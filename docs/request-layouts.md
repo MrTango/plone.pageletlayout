@@ -274,10 +274,19 @@ Guarantees to consumers (what stock patterns extract):
 - `#content-core` — `BodyChromePagelet`'s wrapper, present in **every**
   layout (`pagelets/content.py`).
 
-**`#content` is ajax-only.** Universal adoption was rejected: faithful
-Barceloneta nesting would force a content-group element and break the flat
-one-manager concept. Other layouts use per-view content ids
-(`#content-listing`, …); only the ajax response guarantees `#content`.
+**`#content` is not universal.** Faithful Barceloneta nesting everywhere
+would force a content-group element and break the flat one-manager
+concept, so managed pages use per-view content ids (`#content-listing`, …).
+Two responses do carry it:
+
+- **every ajax response**, as the fragment contract above;
+- **framed pages in any layout** (`FramedPage`, pagelets/framed.py). Not
+  an exception to the rule but a case where it does not bite: a framed
+  page's content header is shadowed empty, so its body element *is* the
+  whole content region and the id groups nothing. It is there because
+  `pat-plone-modal` — which fetches the plain `href` and reads
+  `$("#content").html()` — is a **default-layout** consumer; see
+  "Modal consumers" in [porting-main-template.md](porting-main-template.md).
 
 **Head: charset only, ever.** No title, no head providers — fragments must
 never re-trigger resource loading (the Clara single-bundle story). There is

@@ -1,0 +1,44 @@
+<tal:login-help
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    i18n:domain="plone">
+
+  <h1 class="documentFirstHeading" tal:condition="view/label | nothing">
+    <span tal:replace="view/label">Form title</span>
+  </h1>
+
+  <p class="documentDescription"
+     tal:condition="view/description | nothing"
+     tal:content="structure view/description">Form description</p>
+
+  <div id="content-core">
+    <form action="." method="post" novalidate
+          tal:attributes="action view/action; enctype view/enctype"
+          tal:define="subforms view/subforms">
+
+      <div class="entries">
+        <div class="card" tal:repeat="subform subforms">
+          <div class="card-body">
+            <tal:subform replace="structure subform/render"></tal:subform>
+          </div>
+          <span tal:replace="structure context/@@authenticator/authenticator"/>
+        </div>
+      </div>
+    </form>
+
+    <div class="footer"
+         tal:define="portal_state context/@@plone_portal_state;
+                     portal_url portal_state/portal_url">
+      <div class="trouble">
+        <div i18n:translate="need_more_help" tal:omit-tag="">Need more help?</div>
+        <a tal:attributes="href string:${portal_url}/contact-info"
+           href="contact-info" i18n:translate="contact_an_admin">Contact an admin.</a>
+      </div>
+      <div class="go_to_login">
+        <span i18n:translate="go_to_login" tal:omit-tag="">Go to</span>
+        <a tal:attributes="href string:${portal_url}/login" class="pat-plone-modal"
+           i18n:translate="to_login_view" href="login">login</a>.
+      </div>
+    </div>
+  </div>
+</tal:login-help>

@@ -1,0 +1,32 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       The S1 wrapped-form layout seam (see forms.py): every FormWrapper
+       resolves its outer shell to the pagelet frame — no macro path, no
+       bridge. The adapter dimensions (IFormWrapper, IPlonePageletlayoutLayer)
+       ride on the factory's own declarations.
+       ====================================================================== -->
+  <adapter factory=".forms.form_layout_factory" />
+  <adapter factory=".forms.form_ajax_layout_factory" />
+
+  <!-- The form-specific layout elements, shadowing the stock ones on the
+       view=IFormWrapper dimension: the body is the rendered form, the
+       content header is the form's label + description (the h1 classic
+       layout.pt used to add around view/contents). -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.body"
+      class=".forms.FormBodyChromePagelet"
+      view="plone.z3cform.interfaces.IFormWrapper"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.contentheader"
+      template="templates/form_contentheader.pt"
+      view="plone.z3cform.interfaces.IFormWrapper"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+</configure>

@@ -165,8 +165,10 @@ class AjaxRegion(ChromePagelet):
     construction: the element set is a consumer contract (stock Mockup
     patterns extract ``.portalMessage``, the first ``h1`` and ``#content``),
     not a site-configurable layout — ``viewlets.xml`` cannot reorder or
-    hide it. ``#content`` is ajax-only; ``#content-core`` (the body
-    element's wrapper) stays present in every layout."""
+    hide it. ``#content-core`` (the body element's wrapper) stays present
+    in every layout; ``#content`` is emitted here and — since ticket 09,
+    for the modal consumers that never ask for a fragment — by the framed
+    body element in the other layouts (pagelets/framed.py)."""
 
     def update(self):
         # Both ajax response headers live here — layer-bound code every

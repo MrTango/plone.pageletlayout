@@ -28,6 +28,8 @@ dependencies = [
     "z3c.pagelet",
     "z3c.template",
     "plone.app.viewletmanager",
+    "plone.z3cform",
+    "plone.app.z3cform",
     "setuptools<81",
     "plone.classicui",
     "Paste",

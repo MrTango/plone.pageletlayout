@@ -1,0 +1,17 @@
+<tal:pwreset-finish
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    i18n:domain="plone">
+
+  <h1 class="documentFirstHeading"
+      i18n:translate="heading_pwreset_success">Password set</h1>
+
+  <div id="content-core">
+    <div class="documentDescription" i18n:translate="message_pwreset_success">
+      Your password has been set successfully. You may now
+      <a href="#" tal:attributes="href view/login_url"
+         i18n:name="login_url">log in</a> with your
+      new password.
+    </div>
+  </div>
+</tal:pwreset-finish>
