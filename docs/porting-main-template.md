@@ -12,12 +12,16 @@ one — see docs/porting-main-template.md in plone.pageletlayout.
 When `plone.pageletlayout`'s layer is active, the classic `main_template`
 view is shadowed by a **compatibility bridge**: its `master` (and nested
 `content`) macro renders the pagelet frame, so an unported page keeps
-working and already gets pagelet chrome. The bridge is permanent — nothing
-breaks, ever — but the METAL macro path it preserves is a dead end: it is
-not documented, new features (named layouts, storage-managed chrome,
-the ajax fragment contract) target pagelets, and in development mode every
-macro-path render logs the warning above. Porting is one registration and
-one template edit.
+working and already gets pagelet chrome — the same elements a pagelet page
+renders, in the order and visibility `IViewletSettingsStorage` holds, the
+contentheader excepted (the classic contract emits title and description
+inside the content article through slots a consumer may fill, so the frame
+keeps that one inline and hiding or reordering it changes nothing on a
+bridged page). The bridge is permanent — nothing breaks, ever — but the
+METAL macro path it preserves is a dead end: it is not documented, new
+features (named layouts, the ajax fragment contract) target pagelets, and in
+development mode every macro-path render logs the warning above. Porting is
+one registration and one template edit.
 
 ## The model, in one paragraph
 

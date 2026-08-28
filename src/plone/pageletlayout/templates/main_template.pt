@@ -17,8 +17,9 @@
                   checkPermission python:context.restrictedTraverse('portal_membership').checkPermission;
                   ajax_include_head python:request.get('ajax_include_head', False);
                   ajax_load python:False;
-                  layout_name python:context.restrictedTraverse('@@main_template').layout_name;
-                  dummy_deprecation python:context.restrictedTraverse('@@main_template').warn_macro_use(template);"
+                  bridge python:context.restrictedTraverse('@@main_template');
+                  layout_name bridge/layout_name;
+                  dummy_deprecation python:bridge.warn_macro_use(template);"
       i18n:domain="plone"
       tal:attributes="lang lang;">
 
@@ -52,18 +53,19 @@
   <!-- toolbar: foreign subsystem, self-gating (as in layout.pt) -->
   <tal:toolbar replace="structure provider:plone.toolbar" />
 
-  <!-- The pagelet frame, template-fixed: the same elements the managed
-       manager renders, in the canonical layout.ELEMENTS order — but called
-       one by one, because METAL slots must sit inline in the body region
-       and a provider's render is opaque to slot filling. Bridge pages are
-       therefore not storage-managed (the accepted tradeoff). -->
+  <!-- The pagelet frame, storage-managed: the whole-body manager's elements,
+       in the order and visibility IViewletSettingsStorage holds — the same
+       ones a pagelet page renders, so an element a theme adds to the layout
+       (viewlets.xml) reaches classic consumers too.
+
+       Only the content's POSITION is template-fixed. METAL slots must sit
+       inline in the body region and a provider's render is opaque to slot
+       filling, so the region stays hand-written here and the manager's
+       elements render around it, split at plone.pageletlayout.body. The
+       contentheader is the one element that stays inline as well; bridge.py
+       says why. -->
   <div class="plone-layout">
-    <tal:logo replace="structure provider:plone.pageletlayout.logo" />
-    <tal:anontools replace="structure provider:plone.pageletlayout.anontools" />
-    <tal:globalnav replace="structure provider:plone.pageletlayout.globalnav" />
-    <tal:searchbox replace="structure provider:plone.pageletlayout.searchbox" />
-    <tal:breadcrumbs replace="structure provider:plone.pageletlayout.breadcrumbs" />
-    <tal:statusmessages replace="structure provider:plone.pageletlayout.statusmessages" />
+    <tal:before replace="structure python:bridge.chrome_before(view)" />
     <metal:statusslot define-slot="global_statusmessage" />
 
     <!-- The body region: every classic slot lands inside the element-body
@@ -71,7 +73,7 @@
          master exactly (content > content macro > body > main >
          title/description/content-core), so consumer fills bind unchanged.
          prefs_main_template binds the nested content macro too. -->
-    <div class="element-body">
+    <div class="element-body" tal:condition="python:bridge.show_body(view)">
       <metal:block define-slot="content">
       <metal:content define-macro="content">
         <metal:slot define-slot="body">
@@ -100,9 +102,7 @@
       </metal:block>
     </div>
 
-    <tal:copyright replace="structure provider:plone.pageletlayout.copyright" />
-    <tal:colophon replace="structure provider:plone.pageletlayout.colophon" />
-    <tal:siteactions replace="structure provider:plone.pageletlayout.siteactions" />
+    <tal:after replace="structure python:bridge.chrome_after(view)" />
   </div>
 
   <!-- Diazo off — strictly AFTER the styles provider rendered, or

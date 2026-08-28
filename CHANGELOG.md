@@ -3,6 +3,19 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- The main_template bridge's chrome is storage-managed. The frame called a
+  template-fixed list of provider names, so a bridged page rendered only the
+  elements this package happens to ship in that list: an element a theme adds
+  to `plone.pageletlayout.layout` (viewlets.xml) appeared on pagelet pages and
+  never on a classic one, and reordering or hiding in
+  `@@manage-layout-viewlets` had no effect there either — the byline and the
+  social tags were missing from every bridged page for the same reason. It now
+  renders the manager, split around the inline body region at
+  `plone.pageletlayout.body`; only the content's position stays fixed, because
+  METAL slots must sit inline and a provider's render is opaque to slot
+  filling. The contentheader stays inline too — the classic contract emits
+  title and description inside the content article, through slots a consumer
+  may fill, and rendering the element as well would print both.
 - `sitemap` and `contact-info` are pagelets (classic-coverage ticket 10),
   the map's last two conversions — both stock CMFPlone classes reused whole
   on the FramedPage mechanism. `contact-info` turned out **not** to be a
