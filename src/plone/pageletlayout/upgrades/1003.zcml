@@ -1,0 +1,20 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- The stock viewlet managers are bridged into the layout: viewlets.xml
+       gained the eight bridge elements and the hidden set for the stock
+       viewlets we reimplement. Narrowed to the viewlets import step — the
+       scaffold's whole-profile reload would replay types, registry and
+       rolemap over a site's own customisations. -->
+  <genericsetup:upgradeStep
+      source="1002"
+      destination="1003"
+      title="Hide the stock viewlets the pagelet layout reimplements"
+      description="Re-import the viewlets step: the stock-manager bridge elements plus the hidden set for the nine stock viewlets this package replaces."
+      profile="plone.pageletlayout:default"
+      handler=".v1003.upgrade"
+      />
+
+</configure>

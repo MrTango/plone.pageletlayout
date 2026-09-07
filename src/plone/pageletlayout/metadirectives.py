@@ -162,6 +162,12 @@ class IChromePageletDirective(Interface):
     )
 
 
+# Arbitrary keys and values may be passed and land as class attributes —
+# the same contract plone:pagelet inherits from z3c.pagelet, so one generic
+# chrome class can be parameterized per registration (pagelets/managers.py).
+IChromePageletDirective.setTaggedValue("keyword_arguments", True)
+
+
 class IPageLayoutDirective(Interface):
     """Declare a named page layout: one layout-registry entry.
 

@@ -357,6 +357,56 @@ class TestChromePageletViewDimension(DirectiveTestCase):
         self.assertEqual("", part(fullscreen))
 
 
+class TestChromePageletKeywordArguments(DirectiveTestCase):
+    """plone:chromepagelet passes arbitrary attributes into the class dict.
+
+    The same contract plone:pagelet inherits from z3c.pagelet and stock
+    browser:viewlet already has, so ONE generic class can be parameterized
+    per registration instead of one class per element. The stock-manager
+    bridges are what needed it (pagelets/managers.py:
+    manager_name="plone.portalfooter").
+    """
+
+    def test_arbitrary_attribute_lands_on_the_registered_class(self):
+        load("""
+          <plone:chromepagelet
+              name="ticket03-kwargs"
+              class="tests.directive_fixtures.KwargsChromePagelet"
+              greeting="parameterized-per-registration"
+              />
+        """)
+        view = self.doc.restrictedTraverse("@@plone_context_state")
+        provider = getMultiAdapter(
+            (self.doc, self.request, view), IContentProvider, name="ticket03-kwargs"
+        )
+        self.assertEqual(provider.greeting, "parameterized-per-registration")
+
+    def test_two_registrations_of_one_class_get_their_own_value(self):
+        # The point of the contract: the value belongs to the registration,
+        # not to the class, so the same class serves many elements.
+        load("""
+          <plone:chromepagelet
+              name="ticket03-kwargs-a"
+              class="tests.directive_fixtures.KwargsChromePagelet"
+              greeting="alpha"
+              />
+          <plone:chromepagelet
+              name="ticket03-kwargs-b"
+              class="tests.directive_fixtures.KwargsChromePagelet"
+              greeting="beta"
+              />
+        """)
+        view = self.doc.restrictedTraverse("@@plone_context_state")
+
+        def greeting(name):
+            return getMultiAdapter(
+                (self.doc, self.request, view), IContentProvider, name=name
+            ).greeting
+
+        self.assertEqual(greeting("ticket03-kwargs-a"), "alpha")
+        self.assertEqual(greeting("ticket03-kwargs-b"), "beta")
+
+
 class TestChromePageletMultiFor(DirectiveTestCase):
     """plone:chromepagelet takes Tokens for= like the other three."""
 

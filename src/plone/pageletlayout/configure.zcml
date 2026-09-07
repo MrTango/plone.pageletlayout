@@ -87,7 +87,7 @@
       title="Remove the relocated theme-CSS bundles (now in plonetheme.clara)"
       description="plone.pageletlayout is CSS-less; purge the six former bundle records."
       profile="plone.pageletlayout:default"
-      handler="plone.pageletlayout.upgrades.remove_theme_css_bundles"
+      handler="plone.pageletlayout.upgrades.bundles.remove_theme_css_bundles"
       />
 
   <!-- Wayfinder ticket 15: the editor-toolbar chrome bundle moved into
@@ -98,7 +98,10 @@
       title="Remove the editor-toolbar chrome bundle (now in plonetheme.clara)"
       description="plone.pageletlayout ships zero CSS; purge pageletlayout-toolbar."
       profile="plone.pageletlayout:default"
-      handler="plone.pageletlayout.upgrades.remove_toolbar_bundle"
+      handler="plone.pageletlayout.upgrades.bundles.remove_toolbar_bundle"
       />
+
+  <!-- The scaffolded per-version upgrade steps (upgrades/<version>.zcml). -->
+  <include package=".upgrades" />
 
 </configure>

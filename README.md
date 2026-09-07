@@ -9,7 +9,7 @@ supplies the look through CSS tokens.
 - **The pagelet layout stack** — the Five-compatible `plone:pagelet` /
   `plone:chromepagelet` / `plone:template` / `plone:layout` ZCML directives, and
   a single whole-body `OrderedViewletManager` (`plone.pageletlayout.layout`)
-  holding a flat list of ~13 element pagelets (logo, nav, breadcrumbs,
+  holding a flat list of ~21 element pagelets (logo, nav, breadcrumbs,
   contentheader, body, footer, …). Order and visibility come from
   `IViewletSettingsStorage`.
 - **One published view per type** — `pagelet_view` (reorder/hide the whole page

@@ -6,6 +6,11 @@
   <!-- Head plumbing + visible-chrome pagelets (the layout's region map). -->
   <include file="chrome.zcml" />
 
+  <!-- The stock viewlet managers, bridged in as layout elements — without
+       these every viewlet an add-on registers into IAboveContentBody,
+       IPortalFooter, … silently vanishes from a pagelet page. -->
+  <include file="managers.zcml" />
+
   <!-- The whole-body, one-manager layout — THE pagelet layout. -->
   <include file="layout.zcml" />
 

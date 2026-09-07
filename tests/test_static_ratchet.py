@@ -142,12 +142,16 @@ def collect_macro_consumers(request):
 ALLOWLIST_PATH = pathlib.Path(__file__).parent / "main_template_allowlist.txt"
 
 
-def load_allowlist():
-    """The checked-in allowlist: one entry per line, ``#`` comments."""
-    if not ALLOWLIST_PATH.exists():
+def load_allowlist(path=ALLOWLIST_PATH):
+    """A checked-in allowlist: one entry per line, ``#`` comments.
+
+    Shared with the viewlet ratchet (tests/test_viewlet_ratchet.py), which
+    meters a different set against a file of the same shape.
+    """
+    if not path.exists():
         return set()
     entries = set()
-    for line in ALLOWLIST_PATH.read_text(encoding="utf-8").splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             entries.add(line)

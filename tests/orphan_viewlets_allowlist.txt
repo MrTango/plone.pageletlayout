@@ -1,0 +1,54 @@
+# Viewlets in managers the pagelet layout never renders — they disappear
+# from a pagelet page with no exception and no log line. One entry per line,
+# "<manager interface> <viewlet class>"; '#' comments.
+#
+# The list can only shrink: tests/test_viewlet_ratchet.py fails on an entry
+# that is not here (a new silent disappearance) AND on an entry here that is
+# no longer orphaned (port or bridge it, then delete the line).
+#
+# Everything on it today is head plumbing. The four head managers are
+# deliberately NOT bridged: pagelets/head.py *wraps the individual renderers*
+# instead (the ticket-04 recipe — invisible plumbing is reused whole, and the
+# layout composes it explicitly so a fragment response can leave it out). The
+# consequence is real and worth seeing on a list: a head viewlet an add-on
+# registers is not picked up, and neither is anything this package chose to
+# leave out of the wrappers (plone.links.author, plone.nextprevious.links,
+# plone.analytics — all empty on the shipped acceptance pages).
+
+# --- plone.httpheaders (IHTTPHeaders) --------------------------------------
+# Caching headers, not chrome: a pagelet sets its own response headers
+# (page.py) and plone.app.caching drives the real ones. The manager is still
+# rendered on the main_template bridge's frame (templates/main_template.pt,
+# which kept the classic line) — but never on a pagelet page, which is what
+# this ratchet models.
+plone.app.layout.viewlets.interfaces.IHTTPHeaders plone.app.layout.viewlets.httpheaders.HTTPCachingHeaders
+
+# --- plone.htmlhead (IHtmlHead) --------------------------------------------
+# The <title> is reimplemented clean (HtmlTitleChromePagelet); Dublin Core and
+# the social meta tags are wrapped by HeadMetaChromePagelet, which
+# instantiates the same two renderers — so the *registrations* are orphaned
+# while the behaviour is not. The viewport meta is literal markup in
+# templates/layout.pt. Analytics is opt-in site configuration nothing here
+# exercises.
+plone.app.layout.viewlets.interfaces.IHtmlHead Products.Five.viewlet.viewlet.SimpleViewletClass from plone/app/layout/viewlets/social_tags.pt
+plone.app.layout.viewlets.interfaces.IHtmlHead Products.Five.viewlet.viewlet.SimpleViewletClass from plone/app/layout/viewlets/viewport.pt
+plone.app.layout.viewlets.interfaces.IHtmlHead plone.app.layout.analytics.view.AnalyticsHeadViewlet
+plone.app.layout.viewlets.interfaces.IHtmlHead plone.app.layout.viewlets.common.DublinCoreViewlet
+plone.app.layout.viewlets.interfaces.IHtmlHead plone.app.layout.viewlets.common.TitleViewlet
+
+# --- plone.htmlhead.links (IHtmlHeadLinks) ---------------------------------
+# Favicon, search, RSS and the canonical URL are wrapped by
+# HeadLinksChromePagelet; the styles by StylesChromePagelet. The author link
+# (login-gated) and the next/previous links (folder-setting-gated) are the two
+# this package deliberately left out of the wrappers.
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks Products.CMFPlone.resources.browser.resource.StylesView
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks plone.app.layout.links.viewlets.AuthorViewlet
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks plone.app.layout.links.viewlets.CanonicalURL
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks plone.app.layout.links.viewlets.FaviconViewlet
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks plone.app.layout.links.viewlets.RSSViewlet
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks plone.app.layout.links.viewlets.SearchViewlet
+plone.app.layout.viewlets.interfaces.IHtmlHeadLinks plone.app.layout.nextprevious.view.NextPreviousLinksViewlet
+
+# --- plone.scripts (IScripts) ----------------------------------------------
+# Wrapped by ScriptsChromePagelet, same story as the styles.
+plone.app.layout.viewlets.interfaces.IScripts Products.CMFPlone.resources.browser.resource.ScriptsView

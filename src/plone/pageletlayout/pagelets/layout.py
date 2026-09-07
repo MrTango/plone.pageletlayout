@@ -59,17 +59,32 @@ class ILayoutManager(IViewletManager):
 #:
 #: ``contentheader`` is title + description merged into one ``<header>`` — they
 #: reorder/hide together.
+#:
+#: Eight of these are *bridges* to stock viewlet managers (portaltop,
+#: portalheader, mainnavigation, abovecontent, abovecontentbody,
+#: belowcontentbody, belowcontent, portalfooter — see pagelets/managers.py).
+#: They are ordinary elements: an integrator orders and hides them like any
+#: other. Their positions here mirror classic main_template, so a viewlet an
+#: add-on registered into IBelowContentBody still lands below the body.
 ELEMENTS = (
+    "plone.pageletlayout.portaltop",
     "plone.pageletlayout.logo",
     "plone.pageletlayout.anontools",
+    "plone.pageletlayout.portalheader",
     "plone.pageletlayout.globalnav",
+    "plone.pageletlayout.mainnavigation",
     "plone.pageletlayout.searchbox",
     "plone.pageletlayout.breadcrumbs",
     "plone.pageletlayout.statusmessages",
+    "plone.pageletlayout.abovecontent",
     "plone.pageletlayout.socialtags",
     "plone.pageletlayout.contentheader",
     "plone.pageletlayout.byline",
+    "plone.pageletlayout.abovecontentbody",
     "plone.pageletlayout.body",
+    "plone.pageletlayout.belowcontentbody",
+    "plone.pageletlayout.belowcontent",
+    "plone.pageletlayout.portalfooter",
     "plone.pageletlayout.copyright",
     "plone.pageletlayout.colophon",
     "plone.pageletlayout.siteactions",

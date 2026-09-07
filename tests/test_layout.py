@@ -49,9 +49,12 @@ class TestLayoutRender(unittest.TestCase):
         self.assertIn('id="content-core"', html)
         self.assertIn("element-body", html)
         self.assertIn("A Page", html)
-        # no forbidden spacing/grid utilities leaked into our own wrappers
-        self.assertNotIn('class="row"', html)
-        self.assertNotIn("me-auto", html)
+        # The forbidden-utility ban is checked file-based, on our own
+        # templates only (test_template_lint.py). It cannot be asserted over
+        # rendered output any more: the page now carries stock viewlet markup
+        # through the manager bridges (pagelets/managers.py) — CMFPlone's
+        # plone.footer wraps the footer portlets in a Bootstrap .row — and
+        # that markup is not ours to lint.
 
 
 class TestOrderParity(unittest.TestCase):
@@ -67,7 +70,11 @@ class TestOrderParity(unittest.TestCase):
         viewlets_xml = f"{package_dir}/profiles/default/viewlets.xml"
         with open(viewlets_xml, encoding="utf-8") as fh:
             xml = fh.read()
-        order = tuple(re.findall(r'<viewlet\s+name="([^"]+)"', xml))
+        # Only the <order> block: the file also carries <hidden> sets for the
+        # stock viewlets our elements replace (pagelets/managers.py), whose
+        # names are stock viewlet names, not layout elements.
+        order_block = re.search(r"<order\b.*?</order>", xml, re.DOTALL).group(0)
+        order = tuple(re.findall(r'<viewlet\s+name="([^"]+)"', order_block))
         self.assertEqual(
             order,
             ELEMENTS,

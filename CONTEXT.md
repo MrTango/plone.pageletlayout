@@ -33,6 +33,36 @@ The one ordered viewlet manager holding every visible page element, body
 included; order and visibility are storage-managed.
 _Avoid_: the layout (unqualified), layout manager
 
+### The stock viewlet stack
+
+**Layout element** (short form "element"):
+One entry of the whole-body manager: a named chrome pagelet, wrapped so the
+manager can order and hide it. Everything visible on a page is one.
+_Avoid_: slot, part, region (that names the frame's provider slot)
+
+**Manager bridge** (short form "bridge" only where the main_template bridge
+cannot be meant):
+A layout element that renders one *stock* viewlet manager whole, so viewlets
+registered into it still reach the page. Two kinds: a **sibling bridge** is
+an ordinary element of the whole-body manager; an **in-element bridge**
+renders inside another element, for manager positions that only exist there
+(above/below the content title).
+_Avoid_: wrapper, proxy, adapter; plain "bridge" where
+`bridge.py`'s main_template bridge is also in play
+
+**Orphan viewlet**:
+A viewlet whose manager no bridge renders — it disappears from a pagelet page
+with no exception and no log line. The set is pinned by the viewlet ratchet
+(`tests/orphan_viewlets_allowlist.txt`) and can only shrink.
+_Avoid_: missing viewlet, dropped viewlet
+
+**Deprecation signal**:
+The log line a compatibility path emits naming what rode it and how to leave
+it — one per bridged viewlet, one per macro-path consumer. Logging, never
+`DeprecationWarning`: Zope's filters swallow those and dedupe per code
+location.
+_Avoid_: deprecation warning (that names the Python mechanism this is not)
+
 ### Request-time layout selection
 
 **Page layout** (short form "layout" where unambiguous):

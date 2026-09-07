@@ -115,6 +115,7 @@ def chromePageletDirective(
     for_=None,
     layer=IDefaultBrowserLayer,
     view=IBrowserView,
+    **kwargs,
 ):
     """Register both facets of a chrome pagelet in one stroke.
 
@@ -123,6 +124,12 @@ def chromePageletDirective(
     Template facet: the content template as IContentTemplate adapter,
     registered for the *user's* class so any further subclass (e.g. the
     one plone:pagelet synthesizes to publish the same element) inherits it.
+
+    Arbitrary keyword arguments land as class attributes, the way
+    ``plone:pagelet`` (and stock ``browser:viewlet``) already pass them —
+    so ONE generic class can serve many registrations, parameterized per
+    stanza. That is what the stock-manager bridges use
+    (``manager_name="plone.portalfooter"``, see pagelets/managers.py).
 
     Deliberately no permission attribute: a provider adapter is never
     traversed by ZPublisher, so there is nothing that would enforce one
@@ -139,7 +146,9 @@ def chromePageletDirective(
     bases = () if class_ is None else (class_,)
     if class_ is None or not issubclass(class_, ChromePagelet):
         bases += (ChromePagelet,)
-    new_class = type(bases[0].__name__, bases, {"__name__": name})
+    cdict = {"__name__": name}
+    cdict.update(kwargs)
+    new_class = type(bases[0].__name__, bases, cdict)
 
     # One action per context interface — per-interface conflict detection,
     # same rule as plone:pagelet.

@@ -1,0 +1,82 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="plone.pageletlayout">
+
+  <!-- ======================================================================
+       The stock viewlet managers, bridged into the layout (see managers.py).
+       Without these, every viewlet an add-on registers into IAboveContentBody,
+       IPortalFooter, IBelowContentBody, … vanishes from a pagelet page with
+       no error at all.
+
+       ONE class (.managers.StockManagerChromePagelet), parameterized per
+       registration by manager_name="…" — the PageletViewlet pattern.
+       ====================================================================== -->
+
+  <!-- The shared content template, registered ONCE for the generic class:
+       eight stanzas each carrying template= would be eight registrations of
+       the same (class, layer) adapter, i.e. a configuration conflict. The
+       per-registration subclasses the directive synthesizes inherit it. -->
+  <plone:template
+      template="templates/stockmanager.pt"
+      for=".managers.StockManagerChromePagelet"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- The sibling elements: storage-managed like every other element, so an
+       integrator can order and hide them. Their names and managers are
+       mirrored by .managers.SIBLING_MANAGERS (a parity test pins the two). -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.portaltop"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.portaltop"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.portalheader"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.portalheader"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.mainnavigation"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.mainnavigation"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.abovecontent"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.abovecontent"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.abovecontentbody"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.abovecontentbody"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.belowcontentbody"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.belowcontentbody"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.belowcontent"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.belowcontent"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+  <plone:chromepagelet
+      name="plone.pageletlayout.portalfooter"
+      class=".managers.StockManagerChromePagelet"
+      manager_name="plone.portalfooter"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      />
+
+  <!-- The 8 sibling bridges above need matching wrappers in the whole-body
+       manager; they live with the other 13 in layout.zcml, and their order
+       in profiles/default/viewlets.xml mirrors layout.ELEMENTS. -->
+
+</configure>

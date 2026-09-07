@@ -9,12 +9,14 @@ editing the default view of a container", bound to ``view=IDexterityEditForm``),
 plone.volto's backend warning — so an element that renders only the message
 loop silently drops every one of them. This pagelet owns the themed ``aside``
 shell and nothing else; the manager renders inside it.
+
+The manager lookup itself is ``managers.render_stock_manager`` — this element
+was the prototype the stock-manager bridges generalized, and sharing the
+helper keeps the two from drifting.
 """
 
-from zope.component import getMultiAdapter
-from zope.contentprovider.interfaces import IContentProvider
-
 from plone.pageletlayout.chrome import ChromePagelet
+from plone.pageletlayout.pagelets.managers import render_stock_manager
 
 
 #: The stock manager's provider name (plone.app.layout's viewlets/configure.zcml).
@@ -23,21 +25,14 @@ MANAGER_NAME = "plone.globalstatusmessage"
 
 class StatusMessagesChromePagelet(ChromePagelet):
     """The alert region — plone.globalstatusmessage's job, done by
-    plone.globalstatusmessage."""
+    plone.globalstatusmessage.
+
+    A manager bridge like the ones in managers.py, and it uses the same
+    helper: the lookup happens in code against ``self.view``, and every
+    viewlet that rides it logs the deprecation signal. It differs only in
+    owning a themed ``aside`` shell of its own — which is why it is not one
+    of the generic ``StockManagerChromePagelet`` registrations.
+    """
 
     def update(self):
-        # Looked up in code against self.view — the published view, which is
-        # what carries the dimension the manager's viewlets bind to (a
-        # Dexterity edit form's wrapper provides IDexterityEditForm). A
-        # ``provider:`` expression in this pagelet's own template would hand
-        # the manager THIS pagelet as the view (the BodyChromePagelet lesson).
-        self.manager = getMultiAdapter(
-            (self.context, self.request, self.view),
-            IContentProvider,
-            name=MANAGER_NAME,
-        )
-        self.manager.update()
-
-    @property
-    def contents(self):
-        return self.manager.render()
+        self.contents = render_stock_manager(self, MANAGER_NAME)

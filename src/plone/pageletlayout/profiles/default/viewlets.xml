@@ -3,20 +3,93 @@
   <!-- The whole-body manager's default order = the canonical top-to-bottom
        page order (layout.py ELEMENTS). This is what the layout renders and
        what @@manage-layout-viewlets and a future drag&drop UI edit. Equality
-       with ELEMENTS is what the parity test pins. -->
+       with ELEMENTS is what the parity test pins.
+
+       Eight entries are bridges to stock viewlet managers
+       (pagelets/managers.py); their positions mirror classic main_template,
+       so a viewlet an add-on registered into IBelowContentBody still lands
+       below the body. -->
   <order manager="plone.pageletlayout.layout" skinname="Plone Default">
+    <viewlet name="plone.pageletlayout.portaltop" />
     <viewlet name="plone.pageletlayout.logo" />
     <viewlet name="plone.pageletlayout.anontools" />
+    <viewlet name="plone.pageletlayout.portalheader" />
     <viewlet name="plone.pageletlayout.globalnav" />
+    <viewlet name="plone.pageletlayout.mainnavigation" />
     <viewlet name="plone.pageletlayout.searchbox" />
     <viewlet name="plone.pageletlayout.breadcrumbs" />
     <viewlet name="plone.pageletlayout.statusmessages" />
+    <viewlet name="plone.pageletlayout.abovecontent" />
     <viewlet name="plone.pageletlayout.socialtags" />
     <viewlet name="plone.pageletlayout.contentheader" />
     <viewlet name="plone.pageletlayout.byline" />
+    <viewlet name="plone.pageletlayout.abovecontentbody" />
     <viewlet name="plone.pageletlayout.body" />
+    <viewlet name="plone.pageletlayout.belowcontentbody" />
+    <viewlet name="plone.pageletlayout.belowcontent" />
+    <viewlet name="plone.pageletlayout.portalfooter" />
     <viewlet name="plone.pageletlayout.copyright" />
     <viewlet name="plone.pageletlayout.colophon" />
     <viewlet name="plone.pageletlayout.siteactions" />
   </order>
+
+  <!-- ====================================================================
+       The stock viewlets this package reimplements as its own elements.
+       Bridging their managers (above) without hiding them would render
+       logo, breadcrumbs, byline, colophon and site actions TWICE.
+
+       Configuration, not a code-level exemption: an integrator who prefers
+       the stock viewlet unhides it here and hides our element instead.
+       Every entry below has a counterpart in layout.ELEMENTS — nothing is
+       hidden that this package does not genuinely replace.
+
+       Note what is NOT hidden: plone.membertools (IPortalHeader) is the
+       logged-in half of the personal bar and has no element of ours —
+       AnontoolsChromePagelet covers the anonymous half only — so it stays
+       visible on the portalheader bridge. (It renders nothing while the
+       toolbar is on; its template is gated on the toolbar being hidden.)
+
+       Nor is plone.footer (IPortalFooter), which renders the footer PORTLET
+       manager — content an integrator assigns, not chrome we reimplement.
+       Plone's own default assignments there happen to be a colophon and a
+       site-actions portlet, so a site keeping them sees those alongside our
+       colophon/siteactions elements. Portlet assignments are site data and
+       a GS viewlets.xml cannot touch them; removing the two default
+       assignments (or hiding our two elements) is the integrator's call.
+       ==================================================================== -->
+
+  <!-- plone.pageletlayout.logo / .anontools / .searchbox -->
+  <hidden manager="plone.portalheader" skinname="Plone Default">
+    <viewlet name="plone.logo" />
+    <viewlet name="plone.anontools" />
+    <viewlet name="plone.searchbox" />
+  </hidden>
+
+  <!-- plone.pageletlayout.globalnav -->
+  <hidden manager="plone.mainnavigation" skinname="Plone Default">
+    <viewlet name="plone.global_sections" />
+  </hidden>
+
+  <!-- plone.pageletlayout.breadcrumbs -->
+  <hidden manager="plone.abovecontent" skinname="Plone Default">
+    <viewlet name="plone.path_bar" />
+  </hidden>
+
+  <!-- plone.pageletlayout.socialtags -->
+  <hidden manager="plone.abovecontenttitle" skinname="Plone Default">
+    <viewlet name="plone.socialtags" />
+  </hidden>
+
+  <!-- plone.pageletlayout.byline -->
+  <hidden manager="plone.belowcontenttitle" skinname="Plone Default">
+    <viewlet name="plone.documentbyline" />
+  </hidden>
+
+  <!-- plone.pageletlayout.colophon / .siteactions. CMFPlone's own profile
+       already hides these two (it moved them into footer portlets), so this
+       is belt and braces — it keeps them off a site that unhid them. -->
+  <hidden manager="plone.portalfooter" skinname="Plone Default">
+    <viewlet name="plone.colophon" />
+    <viewlet name="plone.site_actions" />
+  </hidden>
 </object>

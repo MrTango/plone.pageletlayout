@@ -20,6 +20,7 @@ from plone.pageletlayout.chrome import ChromePagelet
 from plone.pageletlayout.interfaces import IAjaxLayoutLayer
 from plone.pageletlayout.interfaces import IPlonePageletlayoutLayer
 from plone.pageletlayout.page import resolve_layout_name
+from plone.pageletlayout.pagelets.managers import ContentHeaderChromePagelet
 
 
 def _path(filename):
@@ -75,3 +76,15 @@ class FormBodyChromePagelet(ChromePagelet):
             '<div id="content-core" class="element-body">'
             f"{self.view.contents}</div>"
         )
+
+
+class FormContentHeaderChromePagelet(ContentHeaderChromePagelet):
+    """The wrapped form's content header: the form's label and description
+    instead of the context's title, with the same three in-element stock
+    managers around them.
+
+    Its own class purely so the two content headers can each own a template:
+    ``plone:chromepagelet`` binds ``template=`` to the *user's* class, so
+    registering both variants on ``ContentHeaderChromePagelet`` would claim
+    the same (class, layer) IContentTemplate adapter twice.
+    """

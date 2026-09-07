@@ -24,6 +24,7 @@
       />
   <plone:chromepagelet
       name="plone.pageletlayout.contentheader"
+      class=".forms.FormContentHeaderChromePagelet"
       template="templates/form_contentheader.pt"
       view="plone.z3cform.interfaces.IFormWrapper"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"

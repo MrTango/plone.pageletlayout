@@ -8,8 +8,9 @@ no-portal, no-browser guard pins that the base stays CSS-less end to end:
   * the default profile's registry.xml registers NO IBundleRegistry records;
   * no static resource directory / vendored stylesheet remains to register;
   * configure.zcml no longer serves ++resource++plone.pageletlayout/;
-  * upgrades.py still purges BOTH relocated bundle families from installed
-    sites (fresh installs get the trimmed profile; old sites get cleaned).
+  * the bundle-purging upgrade steps still purge BOTH relocated bundle
+    families from installed sites (fresh installs get the trimmed profile;
+    old sites get cleaned).
 """
 import re
 from pathlib import Path
@@ -18,7 +19,9 @@ from pathlib import Path
 PKG = Path(__file__).resolve().parent.parent / "src" / "plone" / "pageletlayout"
 REGISTRY_XML = PKG / "profiles" / "default" / "registry.xml"
 CONFIGURE_ZCML = PKG / "configure.zcml"
-UPGRADES_PY = PKG / "upgrades.py"
+#: The bundle-purge steps moved into the upgrades package when the
+#: scaffolded per-version modules arrived (upgrades/v<version>.py).
+UPGRADES_PY = PKG / "upgrades" / "bundles.py"
 
 
 def _strip_xml_comments(text):

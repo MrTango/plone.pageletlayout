@@ -427,15 +427,32 @@ class TestSharingNoUtilitySoup(SharingTestCase):
     the ``plone-*`` primitives, never Bootstrap spacing/flex utilities
     (design principle #3), same discipline as ticket 07's search page."""
 
+    #: Where the body ends: the first layout element after it. Which one
+    #: that is depends on what the stock-manager bridges have to show
+    #: (pagelets/managers.py) — an empty bridge renders nothing at all.
+    NEXT_ELEMENTS = (
+        "element-belowcontentbody",
+        "element-belowcontent",
+        "element-portalfooter",
+        "element-copyright",
+    )
+
     def sharing_body_markup(self):
         """The converted body only — chrome is not this ticket's surface.
 
-        Cut from the framed body element's ``#content-core`` to the next
-        layout element (the copyright row, whose Barceloneta ``.row/.col``
-        shell is chrome and deliberately out of the lint's scope).
+        Cut from the framed body element's ``#content-core`` to whichever
+        layout element follows it. The chrome beyond that point carries
+        markup this lint deliberately does not own: the copyright row's
+        Barceloneta ``.row/.col`` shell, and the stock viewlets the manager
+        bridges render (CMFPlone's plone.footer wraps the footer portlets in
+        a ``.row`` of its own).
         """
-        html = self.open_sharing()
-        return html.split('id="content-core"', 1)[1].split("element-copyright", 1)[0]
+        body = self.open_sharing().split('id="content-core"', 1)[1]
+        cut = min(
+            (body.index(marker) for marker in self.NEXT_ELEMENTS if marker in body),
+            default=len(body),
+        )
+        return body[:cut]
 
     def test_no_forbidden_utilities_in_the_rendered_body(self):
         from .test_template_lint import forbidden_in_markup

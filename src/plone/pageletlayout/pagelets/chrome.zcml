@@ -89,10 +89,14 @@
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
 
-  <!-- content header = title + description merged into one <header>
-       (template-only chrome pagelet). -->
+  <!-- content header = title + description merged into one <header>,
+       with the three in-element stock managers around them
+       (plone.abovecontenttitle / .belowcontenttitle /
+       .belowcontentdescription — positions inside a title block, meaningless
+       as siblings; see managers.py). -->
   <plone:chromepagelet
       name="plone.pageletlayout.contentheader"
+      class=".managers.ContentHeaderChromePagelet"
       template="templates/contentheader.pt"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />

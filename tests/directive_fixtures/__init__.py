@@ -92,3 +92,10 @@ class MultiLayoutBeta:
 
     def update(self):
         self.greeting = "multi-layout-beta"
+
+
+class KwargsChromePagelet:
+    """Keyword-argument fixture: ``greeting`` arrives from the ZCML stanza,
+    never from here."""
+
+    greeting = None

@@ -172,6 +172,114 @@ its form body without an `#content` wrapper, so an add-on that opens a
 `FormBodyChromePagelet` (`pagelets/forms.py`) to grow the id — no shipped
 action does.
 
+## Porting a viewlet
+
+The same log, a different line:
+
+```
+Viewlet acme.banner (acme.theme.viewlets.BannerViewlet) renders through the
+stock viewlet manager plone.abovecontentbody, bridged into the whole-body
+pagelet layout by plone.pageletlayout. Register it into
+plone.pageletlayout.pagelets.layout.ILayoutManager instead, so it becomes a
+layout element an integrator can order and hide — see
+docs/porting-main-template.md in plone.pageletlayout.
+```
+
+Plone's stock viewlet managers — `IPortalHeader`, `IAboveContentBody`,
+`IBelowContentBody`, `IPortalFooter`, … — are **bridged** into the layout
+(`pagelets/managers.py`): each is rendered by one layout element, so a
+viewlet registered into any of them still reaches the page, in its classic
+position. Nothing breaks, and there is no hurry.
+
+But a bridged viewlet is a passenger. The layout's own elements live in one
+ordered manager whose order and visibility an integrator edits in
+`@@manage-layout-viewlets` — a bridged viewlet is invisible there: it can
+only be moved *within* its stock manager, and the whole bridge is hidden or
+shown as one block. Promoting it is one line, because
+`plone.pageletlayout.layout` is a stock `OrderedViewletManager` and
+`PageletViewlet` is only the wrapper *we* use for our own chrome pagelets —
+any plain viewlet registers into it directly:
+
+```xml
+<browser:viewlet
+    name="acme.banner"
+    class=".viewlets.BannerViewlet"
+    manager="plone.pageletlayout.pagelets.layout.ILayoutManager"
+    layer="acme.theme.interfaces.IAcmeThemeLayer"
+    permission="zope2.View"
+    />
+```
+
+The signal is not only about your code. It fires for **every** viewlet on a
+bridge, Plone's own included (`plone.lockinfo`, `plone.relateditems`,
+`plone.footer`, …) — those you cannot port and are not expected to; read past
+them to the lines naming your own package. Production logs one line per
+viewlet per process; development mode logs every render.
+
+Three more things and you are done:
+
+1. **Hide the old registration** in your own profile's `viewlets.xml`, or the
+   viewlet renders twice — once through the bridge, once as an element:
+
+   ```xml
+   <hidden manager="plone.abovecontentbody" skinname="Plone Default">
+     <viewlet name="acme.banner" />
+   </hidden>
+   ```
+
+2. **Give it a position** in the new manager's order — also `viewlets.xml`,
+   in the same file:
+
+   ```xml
+   <order manager="plone.pageletlayout.layout" skinname="Plone Default">
+     <viewlet name="acme.banner" insert-before="plone.pageletlayout.body" />
+   </order>
+   ```
+
+   `insert-before` / `insert-after` place one entry without restating the
+   whole order, so your add-on does not fight the base profile (or another
+   add-on) over the rest of the page.
+
+3. **Add an upgrade step** for those profile changes, as for any GenericSetup
+   XML change, so installed sites get them.
+
+No pagelet conversion is required: your viewlet class and template are
+unchanged. Converting it to a `plone:chromepagelet` afterwards is an optional
+refinement (it buys the pagelet templating story — computation in `update()`,
+markup from the `IContentTemplate` adapter — and nothing else).
+
+### Viewlets that are not bridged
+
+Four managers are deliberately *not* bridged, because this package
+reimplements them rather than rendering them: `plone.htmlhead`,
+`plone.htmlhead.links`, `plone.scripts` and `plone.httpheaders`. The frame's
+`<head>` is composed of chrome pagelets that wrap the individual renderers
+(`pagelets/head.py`), so a viewlet you register into one of those managers
+does *not* appear — and, because it never renders, nothing logs a warning
+either. `tests/orphan_viewlets_allowlist.txt` is the checked-in list of every
+such viewlet; a new one fails the build rather than disappearing quietly. For
+your own head markup, shadow a head element on your view instead — see
+[Head markup for one page](#head-markup-for-one-page) above.
+
+### Stock viewlets this package replaces
+
+Nine stock viewlets duplicate elements the layout ships, so
+`profiles/default/viewlets.xml` hides them: `plone.logo`, `plone.anontools`,
+`plone.searchbox` (`IPortalHeader`), `plone.global_sections`
+(`IMainNavigation`), `plone.path_bar` (`IAboveContent`), `plone.socialtags`
+(`IAboveContentTitle`), `plone.documentbyline` (`IBelowContentTitle`),
+`plone.colophon` and `plone.site_actions` (`IPortalFooter`). It is
+configuration, not code: unhide any of them and hide the corresponding
+element if you prefer the stock one.
+
+One duplication the profile cannot resolve: `plone.footer` renders the footer
+**portlet** manager, and Plone's default assignments there are a colophon and
+a site-actions portlet — the same two things the layout's `colophon` and
+`siteactions` elements render. Portlet assignments are site data, not
+viewlets, so a `viewlets.xml` cannot touch them. Remove the two default
+assignments, or hide the two elements; a theme that drives its footer from
+blocks or portlets alone will want one or the other.
+
 ## What you do not port
 
 **Wrapped z3c.forms** — anything rendered through

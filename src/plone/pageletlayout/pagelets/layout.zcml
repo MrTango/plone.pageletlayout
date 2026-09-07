@@ -19,7 +19,7 @@
       permission="zope2.View"
       />
 
-  <!-- The 13 wrappers: ONE class (.layout.PageletViewlet), parameterized per
+  <!-- The wrappers: ONE class (.layout.PageletViewlet), parameterized per
        registration by pagelet="..."; viewlet name == pagelet name (the body
        wraps the stock "pagelet" provider via chrome pagelet body). -->
   <browser:viewlet name="plone.pageletlayout.logo" pagelet="plone.pageletlayout.logo"
@@ -59,6 +59,35 @@
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
   <browser:viewlet name="plone.pageletlayout.siteactions" pagelet="plone.pageletlayout.siteactions"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+
+  <!-- ... and the eight stock-manager bridges (pagelets/managers.zcml), the
+       same wrapper around a chrome pagelet that renders one stock manager.
+       Storage-managed like every other element: viewlets.xml orders them,
+       @@manage-layout-viewlets hides them. -->
+  <browser:viewlet name="plone.pageletlayout.portaltop" pagelet="plone.pageletlayout.portaltop"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.portalheader" pagelet="plone.pageletlayout.portalheader"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.mainnavigation" pagelet="plone.pageletlayout.mainnavigation"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.abovecontent" pagelet="plone.pageletlayout.abovecontent"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.abovecontentbody" pagelet="plone.pageletlayout.abovecontentbody"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.belowcontentbody" pagelet="plone.pageletlayout.belowcontentbody"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.belowcontent" pagelet="plone.pageletlayout.belowcontent"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.portalfooter" pagelet="plone.pageletlayout.portalfooter"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
 

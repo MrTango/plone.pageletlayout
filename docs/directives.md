@@ -116,9 +116,30 @@ Register one chrome element — a named `IContentProvider` on
 | `for` | Tokens | no | one or more context interfaces/classes |
 | `layer` | GlobalInterface | no | browser layer (exactly one) |
 | `view` | GlobalInterface | no | which *published views* this part is available on (exactly one; default `IBrowserView` = all) |
+| *(anything else)* | — | no | arbitrary keyword arguments become attributes on the registered class — same contract as `plone:pagelet` and stock `browser:viewlet` |
 
 ¹ At least one of `class` / `template`, both allowed — same rule as
 `plone:pagelet`.
+
+The keyword arguments are what lets **one class serve many registrations**,
+parameterized per stanza instead of subclassed per element. The shipped users
+are the manager bridges (`pagelets/managers.zcml`), where eight stanzas share
+`StockManagerChromePagelet` and differ only in `manager_name=`:
+
+```xml
+<plone:chromepagelet
+    name="plone.pageletlayout.portalfooter"
+    class=".managers.StockManagerChromePagelet"
+    manager_name="plone.portalfooter"
+    layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+    />
+```
+
+Note what such a set of stanzas cannot do: `template=` binds the content
+template to the *user's* class, so more than one stanza carrying it for the
+same class is a configuration conflict. Register the shared template once,
+standalone, with `plone:template` — the per-registration subclasses inherit
+it.
 
 There is deliberately **no `permission` attribute**: a provider adapter is
 never traversed by ZPublisher, so nothing would enforce one — accepting and
@@ -349,8 +370,9 @@ any named chrome pagelet into any manager via a `pagelet="..."` attribute:
 You keep the full viewlet-manager toolbox — storage-managed order and
 visibility (`IViewletSettingsStorage`, `viewlets.xml`,
 `@@manage-layout-viewlets`) — without the package shipping a second assembly
-mechanism. The package's whole-body layout is thirteen such stanzas over one
-stock `OrderedViewletManager`.
+mechanism. The package's whole-body layout is twenty-one such stanzas over one
+stock `OrderedViewletManager` — thirteen chrome elements of its own and eight
+bridges to Plone's stock viewlet managers (`pagelets/managers.py`).
 
 **A trap when writing chrome templates:** a `provider:` expression inside a
 *chrome pagelet's own* template hands the nested provider the chrome pagelet

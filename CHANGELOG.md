@@ -3,6 +3,39 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- Plone's stock viewlet managers are bridged into the layout. The layout
+  rendered exactly one manager — its own — so every viewlet an add-on
+  registers into `IAboveContentBody`, `IPortalFooter`, `IBelowContentBody`, …
+  vanished from a pagelet page with no exception and no log line. Stock Plone
+  alone lost lock info, the table of contents, contributors, keywords,
+  related items, rights, the document actions and the footer portlets. Eight
+  managers now render as ordinary layout elements (portaltop, portalheader,
+  mainnavigation, abovecontent, abovecontentbody, belowcontentbody,
+  belowcontent, portalfooter — storage-managed, so hideable and reorderable
+  like every other element), and the three that are positions *inside* a
+  title block (abovecontenttitle, belowcontenttitle, belowcontentdescription)
+  render inside the content header. One generic class parameterized per
+  registration, the way `PageletViewlet` already was; the manager is looked
+  up in code against `self.view`, so viewlets bound to a form
+  (`view=IDexterityEditForm`) still bind.
+- The nine stock viewlets this package reimplements are hidden in
+  `profiles/default/viewlets.xml` — bridging without hiding would render
+  logo, breadcrumbs, byline, colophon and site actions twice. Configuration,
+  not a code-level exemption: unhide any of them and hide the corresponding
+  element instead. One duplication the profile cannot resolve is documented
+  in docs/porting-main-template.md: `plone.footer` renders the footer
+  *portlet* manager, whose default assignments repeat the colophon and the
+  site actions.
+- Every viewlet that renders through a bridge logs a deprecation signal
+  naming itself, the class its add-on wrote, the stock manager and the fix
+  (register into `ILayoutManager`) — the two-tier rate limit the
+  main_template bridge already uses. And because that signal can only speak
+  for viewlets that *do* render, `tests/test_viewlet_ratchet.py` meters the
+  rest: every reachable viewlet whose manager nothing renders is pinned in a
+  checked-in allowlist that can only shrink.
+- `plone:chromepagelet` accepts arbitrary keyword arguments and sets them as
+  class attributes, the contract `plone:pagelet` and stock `browser:viewlet`
+  already had. That is what lets one class serve many registrations.
 - The status-messages element renders the stock `plone.globalstatusmessage`
   viewlet *manager* instead of re-implementing its message loop. The loop is
   only the manager's first entry: plone.app.dexterity registers the
