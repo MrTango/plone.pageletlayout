@@ -98,3 +98,109 @@ class TestViewletsUpgrade(unittest.TestCase):
             "customised_view",
             "the handler replayed the types step over a site customisation",
         )
+
+
+class TestForeignElementsSurviveTheReimport(unittest.TestCase):
+    """An add-on's own element must not be evicted by our order.
+
+    profiles/default/viewlets.xml restates the whole sequence, and
+    GenericSetup applies a restated order by removing each name and appending
+    it — so every one of our twenty-one names lands *behind* an element some
+    add-on anchored into the middle of the page. plonetheme.clara's
+    sub-navigation and collective.blicca.footerblocks' footer were rendered
+    above the logo after the 1003 step ran. See upgrades/viewlet_order.py.
+    """
+
+    layer = INTEGRATION_TESTING
+
+    #: Two foreign elements at the anchors the real add-ons use: clara's
+    #: sub-navigation directly after the body, footerblocks directly before
+    #: the first footer row.
+    SUBNAV = "plonetheme.clara.subnav"
+    FOOTER = "collective.blicca.footerblocks.footerblocks"
+
+    def setUp(self):
+        self.portal = self.layer["portal"]
+        setRoles(self.portal, TEST_USER_ID, ["Manager"])
+        self.setup_tool = self.portal.portal_setup
+        self.storage = getUtility(IViewletSettingsStorage)
+
+    def order(self):
+        return tuple(self.storage.getOrder(MANAGER_NAME, SKINNAME))
+
+    def store(self, order):
+        self.storage.setOrder(MANAGER_NAME, SKINNAME, tuple(order))
+
+    def with_foreign_elements(self):
+        """The canonical order plus the two foreign elements at their anchors."""
+        order = []
+        for name in ELEMENTS:
+            if name == "plone.pageletlayout.copyright":
+                order.append(self.FOOTER)
+            order.append(name)
+            if name == "plone.pageletlayout.body":
+                order.append(self.SUBNAV)
+        return order
+
+    def test_foreign_elements_keep_their_place(self):
+        self.store(self.with_foreign_elements())
+
+        upgrade(self.setup_tool)
+
+        order = self.order()
+        self.assertEqual(
+            order.index(self.SUBNAV),
+            order.index("plone.pageletlayout.body") + 1,
+            "the sub-navigation left its anchor below the body",
+        )
+        self.assertEqual(
+            order.index(self.FOOTER),
+            order.index("plone.pageletlayout.copyright") - 1,
+            "the footer left its anchor above the footer rows",
+        )
+
+    def test_our_own_order_is_still_the_canonical_one(self):
+        self.store(self.with_foreign_elements())
+
+        upgrade(self.setup_tool)
+
+        ours = tuple(name for name in self.order() if name in ELEMENTS)
+        self.assertEqual(ours, ELEMENTS)
+
+    def test_it_stays_put_over_repeated_reimports(self):
+        # Anchors are evaluated against the order as it stands mid-import, so
+        # a scheme that re-anchored our own entries would let a foreign
+        # element drift one place further on every run. This one does not.
+        self.store(self.with_foreign_elements())
+
+        upgrade(self.setup_tool)
+        once = self.order()
+        upgrade(self.setup_tool)
+
+        self.assertEqual(self.order(), once)
+
+    def test_an_element_ahead_of_ours_stays_ahead(self):
+        # Nothing ships one, but the storage allows it: a foreign name with no
+        # predecessor belongs at the front, not swept to the back.
+        self.store([self.SUBNAV, *ELEMENTS])
+
+        upgrade(self.setup_tool)
+
+        self.assertEqual(self.order()[0], self.SUBNAV)
+
+    def test_a_run_of_foreign_elements_keeps_its_sequence(self):
+        first, second = "an.addon.first", "an.addon.second"
+        order = []
+        for name in ELEMENTS:
+            order.append(name)
+            if name == "plone.pageletlayout.body":
+                order.extend([first, second])
+        self.store(order)
+
+        upgrade(self.setup_tool)
+
+        restored = self.order()
+        self.assertEqual(
+            restored[restored.index("plone.pageletlayout.body") + 1 :][:2],
+            (first, second),
+        )

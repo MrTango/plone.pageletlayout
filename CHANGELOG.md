@@ -3,6 +3,23 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- The 1003 viewlets re-import no longer evicts other add-ons' elements.
+  `profiles/default/viewlets.xml` states the layout order in full, and
+  GenericSetup applies a restated order by *removing each name and appending
+  it* — so on a site where an add-on had anchored an element into the sequence
+  (`plonetheme.clara.subnav` below the body,
+  `collective.blicca.footerblocks.footerblocks` above the footer rows) all
+  twenty-one of our names moved past it and the add-on's element ended up
+  first on the page: the site's footer rendered above its logo. Anchoring our
+  own entries would not have fixed it — an anchor is evaluated against the
+  order as it stands mid-import, so a foreign element sitting on one is
+  stepped over and drifts a little further with every re-import. What the
+  foreign entries mean is "keep me next to *this* neighbour", so
+  `upgrades/viewlet_order.py` preserves exactly that: snapshot the order, let
+  the import restate ours, put every name that is not ours back behind the
+  neighbour it had. A site already upgraded by the previous step is repaired
+  by re-running the add-on's own `viewlets` step, whose
+  `insert-after`/`insert-before` anchors stay authoritative.
 - Plone's stock viewlet managers are bridged into the layout. The layout
   rendered exactly one manager — its own — so every viewlet an add-on
   registers into `IAboveContentBody`, `IPortalFooter`, `IBelowContentBody`, …
