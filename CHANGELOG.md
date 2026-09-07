@@ -3,6 +3,19 @@
 ## 1.0.0a1 (unreleased)
 
 - Initial release.
+- The status-messages element renders the stock `plone.globalstatusmessage`
+  viewlet *manager* instead of re-implementing its message loop. The loop is
+  only the manager's first entry: plone.app.dexterity registers the
+  default-page warning next to it ("You are editing the default view of a
+  container", bound to `view=IDexterityEditForm`) and plone.volto its backend
+  warning, so the old element dropped every sibling viewlet — editing a
+  folder's default page showed no warning at all. The manager is looked up in
+  code against `self.view`, the published view: a Dexterity edit form's
+  wrapper is what provides `IDexterityEditForm`, and a `provider:` expression
+  in the pagelet's own template would hand the manager the pagelet instead
+  (the BodyChromePagelet lesson). The pagelet keeps only the themed `aside`
+  shell; `MTYPES_DISPLAY` and the copied message loop are gone, which also
+  drops a duplicated literal `alert` class from the rendered markup.
 - The main_template bridge's chrome is storage-managed. The frame called a
   template-fixed list of provider names, so a bridged page rendered only the
   elements this package happens to ship in that list: an element a theme adds
