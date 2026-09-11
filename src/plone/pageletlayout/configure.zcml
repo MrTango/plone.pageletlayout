@@ -79,6 +79,14 @@
       handler="plone.pageletlayout.setuphandlers.uninstall"
       />
 
+  <!-- Keep the uninstall profile out of the Add-ons control panel.
+       Without this registration the class in setuphandlers.py is inert and
+       the uninstall profile is offered as an installable add-on of its own. -->
+  <utility
+      factory=".setuphandlers.HiddenProfiles"
+      name="plone.pageletlayout-hiddenprofiles"
+      />
+
   <!-- Wayfinder ticket 04: the six theme-CSS bundles moved into
        plonetheme.clara's one compiled bundle. Purge them from installed sites. -->
   <genericsetup:upgradeStep

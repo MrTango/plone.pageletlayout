@@ -26,6 +26,25 @@ class TestSetup:
         # assert IPlonePageletlayoutLayer in utils.registered_layers()
         assert True
 
+    def test_the_hidden_profiles_utility_is_registered(self):
+        """`HiddenProfiles` only hides anything once ZCML registers it.
+
+        The add-ons control panel reads `INonInstallable` from the utility
+        registry, never the class: unregistered, the list in setuphandlers.py
+        is inert and every EXTENSION profile this package registers -- the
+        uninstall one today, a scaffolded upgrade profile tomorrow -- is
+        offered as an installable add-on.
+        """
+        from plone.base.interfaces import INonInstallable
+        from zope.component import getAllUtilitiesRegisteredFor
+
+        hidden = [
+            name
+            for utility in getAllUtilitiesRegisteredFor(INonInstallable)
+            for name in getattr(utility, "getNonInstallableProfiles", list)()
+        ]
+        assert "plone.pageletlayout:uninstall" in hidden
+
 
 class TestUninstall:
     """Test uninstallation."""
