@@ -2,6 +2,14 @@
 
 ## 1.0.0a1 (unreleased)
 
+- The stock-manager bridge skips dual-registered viewlets. A viewlet
+  registered under one name in a bridged stock manager *and* in
+  `ILayoutManager` is a ported viewlet that kept its stock registration for
+  stock Plone; the layout renders the element, the bridge drops the twin
+  after `update()` and does not log a deprecation line for it. Dual
+  registration is the documented porting path for add-ons that must keep
+  working without this package (`docs/porting-main-template.md`).
+
 - Register the `INonInstallable` utility that hides the uninstall profile.
   `HiddenProfiles` was defined in `setuphandlers.py` but never registered in
   `configure.zcml`, so it hid nothing: harmless while this package has no

@@ -44,13 +44,22 @@ renders through one logs a deprecation signal naming itself and the fix
 (register into ``ILayoutManager`` instead). Viewlets in managers we do *not*
 bridge still vanish silently — tests/test_viewlet_ratchet.py is the meter
 for those.
+
+An add-on that has to keep working on stock Plone ports by **dual
+registration**: the stock registration stays, an ``ILayoutManager`` one is
+added under the same name. The layout renders the element; the bridge
+recognizes the twin (``ported_viewlet_names``) and skips it, silently —
+otherwise the viewlet would render twice and be told to port what it
+already ported.
 """
 
 import logging
 
 from App.config import getConfiguration
 from zope.component import getMultiAdapter
+from zope.component import queryMultiAdapter
 from zope.contentprovider.interfaces import IContentProvider
+from zope.viewlet.interfaces import IViewlet
 
 from plone.pageletlayout.bridge import PORTING_DOCS
 from plone.pageletlayout.chrome import ChromePagelet
@@ -164,11 +173,40 @@ def warn_bridged_viewlets(manager_name, manager):
             logger.info(message)
 
 
+def ported_viewlet_names(pagelet, manager):
+    """The names in ``manager.viewlets`` that are also layout elements.
+
+    A viewlet is a layout element when an ``IViewlet`` adapter lookup for
+    (context, request, view, layout manager) by its name finds one. Names,
+    not classes: the two registrations may wrap different classes (a
+    ``PageletViewlet`` wrapper next to a ``ViewletBase``), and the name is
+    what the porting path keeps identical.
+    """
+    layout = getMultiAdapter(
+        (pagelet.context, pagelet.request, pagelet.view),
+        IContentProvider,
+        name="plone.pageletlayout.layout",
+    )
+    return {
+        name
+        for name in (getattr(viewlet, "__name__", None) for viewlet in manager.viewlets)
+        if name
+        and queryMultiAdapter(
+            (pagelet.context, pagelet.request, pagelet.view, layout), IViewlet, name=name
+        )
+        is not None
+    }
+
+
 def render_stock_manager(pagelet, manager_name):
     """Update and render one stock viewlet manager for ``pagelet``.
 
     The lookup triple is (context, request, ``pagelet.view``) — the
     published view, never the pagelet (see the module docstring).
+
+    Dual-registered viewlets are dropped after ``update()`` (the manager
+    updated them along with the rest) and before ``render()``, so neither
+    the markup nor the deprecation signal carries them.
     """
     manager = getMultiAdapter(
         (pagelet.context, pagelet.request, pagelet.view),
@@ -176,6 +214,13 @@ def render_stock_manager(pagelet, manager_name):
         name=manager_name,
     )
     manager.update()
+    ported = ported_viewlet_names(pagelet, manager)
+    if ported:
+        manager.viewlets = [
+            viewlet
+            for viewlet in manager.viewlets
+            if getattr(viewlet, "__name__", None) not in ported
+        ]
     warn_bridged_viewlets(manager_name, manager)
     # Stripped so "empty" is detectable: OrderedViewletManager joins its
     # viewlets with newlines, so a manager whose viewlets all render nothing

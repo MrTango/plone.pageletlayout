@@ -12,6 +12,9 @@ each:
   profile hides them;
 * every viewlet that renders through a bridge logs a deprecation signal
   naming itself and the fix;
+* a viewlet registered under one name in a stock manager *and* in
+  ``ILayoutManager`` (a ported viewlet keeping its stock registration for
+  stock Plone) renders once, as the element, and is not asked to port;
 * the sibling bridges are ordinary storage-managed elements — ELEMENTS,
   viewlets.xml and the ZCML stanzas agree.
 """
@@ -34,6 +37,7 @@ from plone.app.testing import TEST_USER_ID
 from plone.app.viewletmanager.interfaces import IViewletSettingsStorage
 from plone.pageletlayout.interfaces import IPlonePageletlayoutLayer
 from plone.pageletlayout.pagelets.layout import ELEMENTS
+from plone.pageletlayout.pagelets.layout import ILayoutManager
 from plone.pageletlayout.pagelets.managers import CONTENT_HEADER_MANAGERS
 from plone.pageletlayout.pagelets.managers import RENDERED_MANAGERS
 from plone.pageletlayout.pagelets.managers import SIBLING_MANAGERS
@@ -60,6 +64,16 @@ VIEWLET_STANZA = """\
       manager="plone.app.layout.viewlets.interfaces.{manager}"
       class="tests.viewlet_fixtures.{class_}"
       view="{view}"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+      permission="zope2.View"
+      />
+"""
+
+LAYOUT_STANZA = """\
+  <browser:viewlet
+      name="{name}"
+      manager="plone.pageletlayout.pagelets.layout.ILayoutManager"
+      class="tests.viewlet_fixtures.{class_}"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       permission="zope2.View"
       />
@@ -114,6 +128,23 @@ class ManagerBridgeTestCase(unittest.TestCase):
                 IPlonePageletlayoutLayer,
                 view_iface,
                 manager_iface,
+            ),
+            provided=IViewlet,
+            name=name,
+        )
+
+    def register_layout_element(self, name, class_):
+        """Register the same probe as a layout element — the ported half of
+        a dual registration. No order entry: an unordered viewlet renders at
+        the end of the layout, which is enough to count it."""
+        xmlconfig.string(ZCML_WRAPPER.format(LAYOUT_STANZA.format(name=name, class_=class_)))
+        self.addCleanup(
+            getGlobalSiteManager().unregisterAdapter,
+            required=(
+                Interface,
+                IPlonePageletlayoutLayer,
+                Interface,
+                ILayoutManager,
             ),
             provided=IViewlet,
             name=name,
@@ -377,6 +408,56 @@ class TestDeprecationSignal(ManagerBridgeTestCase):
         for element in ELEMENTS:
             with self.subTest(element=element):
                 self.assertNotIn(f"Viewlet {element} ", message)
+
+
+class TestDualRegistrationSkipsTheBridge(ManagerBridgeTestCase):
+    """A viewlet registered under one name in a bridged stock manager *and*
+    in ``ILayoutManager`` is a ported viewlet that kept its stock
+    registration for stock Plone: the layout renders the element, the
+    bridge skips the twin, and nothing asks anyone to port it."""
+
+    NAME = "probe.portalfooter"
+    CLASS = "PortalFooterProbe"
+    #: One per render: the probe's marker text appears twice per render.
+    MARKER = 'class="probe-portalfooter"'
+
+    def test_the_dual_registered_viewlet_renders_exactly_once(self):
+        self.register_probe(self.NAME, "IPortalFooter", self.CLASS)
+        self.register_layout_element(self.NAME, self.CLASS)
+        html = self.render(self.doc, "pagelet_view")
+        self.assertEqual(html.count(self.MARKER), 1)
+
+    def test_the_element_renders_and_the_bridge_does_not(self):
+        # Where the one occurrence comes from matters: the bridge's output
+        # is wrapped in element-portalfooter, the layout element is not.
+        self.register_probe(self.NAME, "IPortalFooter", self.CLASS)
+        self.register_layout_element(self.NAME, self.CLASS)
+        html = self.render(self.doc, "pagelet_view")
+        start = html.index("element-portalfooter")
+        end = html.index("element-", start + 1)
+        self.assertNotIn("probe-portalfooter", html[start:end])
+
+    def test_the_dual_registered_viewlet_is_not_asked_to_port(self):
+        self.register_probe(self.NAME, "IPortalFooter", self.CLASS)
+        self.register_layout_element(self.NAME, self.CLASS)
+        self.set_debug(True)
+        with self.assertLogs(MANAGERS_LOGGER, level="WARNING") as logs:
+            self.render(self.doc, "pagelet_view")
+        self.assertNotIn(f"Viewlet {self.NAME} ", "\n".join(logs.output))
+
+    def test_a_stock_only_viewlet_still_rides_the_bridge(self):
+        # The skip is keyed on the twin, not on the manager: a viewlet with
+        # no layout registration keeps rendering through the bridge, and
+        # keeps being told to move.
+        self.register_probe(self.NAME, "IPortalFooter", self.CLASS)
+        self.set_debug(True)
+        with self.assertLogs(MANAGERS_LOGGER, level="WARNING") as logs:
+            html = self.render(self.doc, "pagelet_view")
+        self.assertEqual(html.count(self.MARKER), 1)
+        start = html.index("element-portalfooter")
+        end = html.index("element-", start + 1)
+        self.assertIn("probe-portalfooter", html[start:end])
+        self.assertIn(f"Viewlet {self.NAME} ", "\n".join(logs.output))
 
 
 class TestBridgeRegistrationParity(ManagerBridgeTestCase):

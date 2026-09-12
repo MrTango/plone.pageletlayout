@@ -243,6 +243,37 @@ Three more things and you are done:
 3. **Add an upgrade step** for those profile changes, as for any GenericSetup
    XML change, so installed sites get them.
 
+### Dual registration
+
+An add-on that must keep working on stock Plone cannot hide its stock
+registration: that registration *is* the stock site's viewlet. Keep it, and
+add the `ILayoutManager` one under the **same name**:
+
+```xml
+<browser:viewlet
+    name="acme.banner"
+    class=".viewlets.BannerViewlet"
+    manager="plone.app.layout.viewlets.interfaces.IAboveContentBody"
+    layer="acme.theme.interfaces.IAcmeThemeLayer"
+    permission="zope2.View"
+    />
+<browser:viewlet
+    name="acme.banner"
+    class=".viewlets.BannerViewlet"
+    manager="plone.pageletlayout.pagelets.layout.ILayoutManager"
+    layer="acme.theme.interfaces.IAcmeThemeLayer"
+    permission="zope2.View"
+    />
+```
+
+On a pagelet page the layout renders the element and the bridge skips the
+twin — a name registered in a bridged stock manager *and* in
+`ILayoutManager` is a ported viewlet, so it renders once and no deprecation
+line names it. The two registrations may wrap different classes; only the
+name has to match. Note the ordering consequence: the element's position is
+the **layout order** (`plone.pageletlayout.layout` in `viewlets.xml`); the
+stock manager's order entry is inert here and only matters on stock Plone.
+
 No pagelet conversion is required: your viewlet class and template are
 unchanged. Converting it to a `plone:chromepagelet` afterwards is an optional
 refinement (it buys the pagelet templating story — computation in `update()`,
