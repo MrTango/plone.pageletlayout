@@ -2,6 +2,12 @@
 
 ## 1.0.0a1 (unreleased)
 
+- The logo `<img>` carries the logo's intrinsic `width` and `height`, read
+  from the registry logo (or the stock `plone-logo.svg`), so the browser
+  reserves its box before the image loads and the header does not shift
+  (Lighthouse "Image elements do not have explicit width and height"). An
+  unreadable logo renders without them, as before.
+
 - The stock-manager bridge skips dual-registered viewlets. A viewlet
   registered under one name in a bridged stock manager *and* in
   `ILayoutManager` is a ported viewlet that kept its stock registration for

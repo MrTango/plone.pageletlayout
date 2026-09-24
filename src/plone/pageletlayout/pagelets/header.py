@@ -5,6 +5,9 @@ does the classic viewlet's *job* (registry/actions lookups) without touching
 plone.app.layout.
 """
 
+from pathlib import Path
+
+import Products.CMFPlone.browser
 from Acquisition import aq_inner
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getSiteLogo
@@ -13,8 +16,25 @@ from zope.component import getUtility
 from plone.base.interfaces import ISearchSchema
 from plone.base.interfaces import ISiteSchema
 from plone.base.navigationroot import get_navigation_root_object
+from plone.formwidget.namedfile.converter import b64decode_file
+from plone.namedfile.utils import getImageInfo
 from plone.pageletlayout.chrome import ChromePagelet
 from plone.registry.interfaces import IRegistry
+
+
+STOCK_LOGO = Path(Products.CMFPlone.browser.__file__).parent / "static" / "plone-logo.svg"
+
+
+def logo_dimensions(site_logo):
+    """(width, height) of the logo, or (None, None) when unreadable."""
+    try:
+        data = b64decode_file(site_logo)[1] if site_logo else STOCK_LOGO.read_bytes()
+        width, height = getImageInfo(data)[1:]
+    except Exception:
+        return None, None
+    if width <= 1 or height <= 1:
+        return None, None
+    return width, height
 
 
 class LogoChromePagelet(ChromePagelet):
@@ -30,6 +50,7 @@ class LogoChromePagelet(ChromePagelet):
         self.navigation_root_url = nav_root.absolute_url()
         self.navigation_root_title = nav_root.Title()
         self.img_src = getSiteLogo()
+        self.img_width, self.img_height = logo_dimensions(settings.site_logo)
 
 
 class AnontoolsChromePagelet(ChromePagelet):

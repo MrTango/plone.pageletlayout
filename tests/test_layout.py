@@ -14,6 +14,7 @@ import transaction
 from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from plone.formwidget.namedfile.converter import b64encode_file
 from plone.pageletlayout.pagelets.layout import ELEMENTS
 from plone.pageletlayout.testing import FUNCTIONAL_TESTING
 
@@ -55,6 +56,35 @@ class TestLayoutRender(unittest.TestCase):
         # through the manager bridges (pagelets/managers.py) — CMFPlone's
         # plone.footer wraps the footer portlets in a Bootstrap .row — and
         # that markup is not ours to lint.
+
+    def test_stock_logo_has_intrinsic_dimensions(self):
+        html = self._render("pagelet_view")
+        self.assertRegex(html, r'<img alt=""[^>]+width="215"[^>]+height="56"')
+
+    def test_registry_logo_has_intrinsic_dimensions(self):
+        svg = (
+            b'<svg xmlns="http://www.w3.org/2000/svg" '
+            b'width="300" height="100" viewBox="0 0 300 100"></svg>'
+        )
+        api.portal.set_registry_record(
+            "plone.site_logo",
+            b64encode_file("logo.svg", svg),
+        )
+        transaction.commit()
+        html = self._render("pagelet_view")
+        self.assertRegex(
+            html,
+            r'<img alt=""[^>]+@@site-logo/logo\.svg"[^>]+width="300"'
+            r'[^>]+height="100"',
+        )
+
+    def test_unreadable_logo_renders_without_dimensions(self):
+        api.portal.set_registry_record("plone.site_logo", b64encode_file("logo.svg", b"junk"))
+        transaction.commit()
+        html = self._render("pagelet_view")
+        img = re.search(r"<img alt=\"\"[^>]+>", html).group(0)
+        self.assertIn("@@site-logo/logo.svg", img)
+        self.assertNotIn("width=", img)
 
 
 class TestOrderParity(unittest.TestCase):
