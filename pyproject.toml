@@ -30,7 +30,6 @@ dependencies = [
     "plone.app.viewletmanager",
     "plone.z3cform",
     "plone.app.z3cform",
-    "setuptools<81",
     "plone.classicui",
     "Paste",
     "plone.app.caching",
