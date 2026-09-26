@@ -16,32 +16,17 @@ class FramedBodyChromePagelet(ChromePagelet):
     published pagelet's registered content template — a framed page has
     none, its bodies live on the class).
 
-    **The element carries ``#content`` too** — the modal extraction point
-    (ticket 09). ``pat-plone-modal`` fetches the link's plain ``href``,
-    never appending ``ajax_load`` (of the shipped patterns only search and
-    manageportlets do), and extracts ``$("#content").html()``; so the
-    *default*-layout response is what a modal parses, not the ajax
-    fragment. Five stock actions open in a modal — login, delete, rename,
-    contact, join — and every one of them is or becomes a framed page.
-
-    A framed page can carry the id without the content-group element
-    request-layouts.md rejected for the managed layout: its content header
-    is shadowed empty, so this element *is* the whole content region and
-    the wrapper groups nothing. ``.element-body`` stays on the inner div,
-    where Clara's direct-child typography rules need it, and the nesting
-    matches stock main_template, AjaxRegion and the bridge frame exactly.
+    ``#content``, the modal extraction point (``pat-plone-modal`` extracts
+    ``$("#content").html()`` from the plain default-layout response), is the
+    frame's ``article`` around this element — its content header is shadowed
+    empty, so the article holds just this body.
     """
 
     def render(self):
-        core = (
+        return (
             '<div id="content-core" class="element-body">'
             f"{self.view.render_body()}</div>"
         )
-        if self.view.layout_name == "ajax":
-            # AjaxRegion already wraps the fixed element set in #content
-            # (layout.py); a second one here would duplicate the id.
-            return core
-        return f'<article id="content">{core}</article>'
 
 
 class EmptyContentHeaderChromePagelet(ChromePagelet):

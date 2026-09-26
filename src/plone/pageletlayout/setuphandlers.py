@@ -11,6 +11,7 @@ class HiddenProfiles:
         """Return list of profiles that should not be available for install."""
         return [
             "plone.pageletlayout:uninstall",
+            "plone.pageletlayout.upgrades:1004",
         ]
 
 

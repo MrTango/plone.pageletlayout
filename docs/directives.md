@@ -122,16 +122,15 @@ Register one chrome element — a named `IContentProvider` on
 `plone:pagelet`.
 
 The keyword arguments are what lets **one class serve many registrations**,
-parameterized per stanza instead of subclassed per element. The shipped users
-are the manager bridges (`pagelets/managers.zcml`), where eight stanzas share
-`StockManagerChromePagelet` and differ only in `manager_name=`:
+parameterized per stanza instead of subclassed per element — the way stock
+`browser:viewlet` passes `pagelet=` to every `PageletViewlet` wrapper:
 
 ```xml
 <plone:chromepagelet
-    name="plone.pageletlayout.portalfooter"
-    class=".managers.StockManagerChromePagelet"
-    manager_name="plone.portalfooter"
-    layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
+    name="acme.banner"
+    class=".banner.BannerChromePagelet"
+    variant="wide"
+    layer="acme.theme.interfaces.IAcmeThemeLayer"
     />
 ```
 
@@ -370,9 +369,8 @@ any named chrome pagelet into any manager via a `pagelet="..."` attribute:
 You keep the full viewlet-manager toolbox — storage-managed order and
 visibility (`IViewletSettingsStorage`, `viewlets.xml`,
 `@@manage-layout-viewlets`) — without the package shipping a second assembly
-mechanism. The package's whole-body layout is twenty-one such stanzas over one
-stock `OrderedViewletManager` — thirteen chrome elements of its own and eight
-bridges to Plone's stock viewlet managers (`pagelets/managers.py`).
+mechanism. The package's layout elements are ten such stanzas; the slot
+assignment (`pagelets/slots.py`) decides which stock manager renders each.
 
 **A trap when writing chrome templates:** a `provider:` expression inside a
 *chrome pagelet's own* template hands the nested provider the chrome pagelet

@@ -1,30 +1,36 @@
-"""Custom manage-viewlets screens for the pagelet-only whole-body manager.
+"""The management screen for the slot layout.
 
-Stock ``@@manage-viewlets`` never lists our manager: that UI renders through
-classic main_template and only decorates managers appearing on *its* page, and
-our manager renders only in the pagelet layout. These views are scoped to the
-one manager instead.
+Stock ``@@manage-viewlets`` orders and hides viewlets per manager, but cannot
+move a layout element to another slot. This screen does all three for the
+slots the frame renders.
 
 Reuse-over-reimplement: every mutator is inherited. ``ManageViewlets``
 (``plone.app.viewletmanager.manager``) already ships
 ``_getOrder``/``moveAbove``/``moveBelow``/``hide``/``show``, all
 manager-agnostic. ``_ManageViewletsBase`` adds only the pieces a management
-screen needs on top — scoping, an ``elements()`` template helper, preview
-links, and a small ``?action=…&viewlet=…`` protocol that redirects back to
+screen needs on top — the ``slots()`` template helper, slot assignment, preview
+links, and a small ``?action=…&manager=…&viewlet=…`` protocol redirecting back to
 itself.
 
-* ``LayoutManageView`` (``@@manage-layout-viewlets``) — reorder + hide/show
-  across the whole-body layout manager (the whole page).
+* ``LayoutManageView`` (``@@manage-layout-viewlets``) — reorder, hide/show
+  and assign to a slot, for every slot on the page.
 """
 
 from Products.CMFPlone.resources.browser.resource import StylesView
+from zope.component import getSiteManager
 from zope.component import getUtility
 from zope.interface import classImplementsOnly
 from zope.interface import implementedBy
+from zope.interface import providedBy
+from zope.viewlet.interfaces import IViewlet
 
 from plone.app.viewletmanager.interfaces import IViewletManagementView
 from plone.app.viewletmanager.interfaces import IViewletSettingsStorage
 from plone.app.viewletmanager.manager import ManageViewlets
+from plone.pageletlayout.pagelets.slots import assign
+from plone.pageletlayout.pagelets.slots import ILayoutManager
+from plone.pageletlayout.pagelets.slots import slot_assignments
+from plone.pageletlayout.pagelets.slots import SLOTS
 from plone.protect.authenticator import createToken
 
 
@@ -60,17 +66,13 @@ class _StandalonePage:
 
 
 class _ManageViewletsBase(_StandalonePage, ManageViewlets):
-    """Shared base for the pagelet-manager management screens.
+    """Order, visibility and slot assignment for the slot layout.
 
-    A concrete view sets ``manager_name`` (the ``OrderedViewletManager`` this
-    screen scopes to), ``view_name`` (the ``@@…`` name it is registered under,
-    for the self-redirect + form action) and ``preview_managed`` (the view name
-    the preview link points at). Everything else — the CSRF token,
-    ``elements()``, ``preview_urls()``, the move helper and the action protocol
-    — is shared, all driven off ``manager_name``.
+    One table per slot (``slots.SLOTS``, page order), listing the stock
+    viewlets and the layout elements assigned to it. A small
+    ``?action=…&manager=…&viewlet=…`` protocol redirects back to itself.
     """
 
-    manager_name = None
     view_name = None
     preview_managed = None
 
@@ -80,46 +82,79 @@ class _ManageViewletsBase(_StandalonePage, ManageViewlets):
         ``_authenticator`` or it diverts them to @@confirm-action."""
         return createToken()
 
-    def elements(self):
-        """The manager's viewlets in current order, as template rows."""
+    def pool_elements(self):
+        """Names of every layout element registered for this request."""
+        required = (
+            providedBy(self.context),
+            providedBy(self.request),
+            providedBy(self),
+            ILayoutManager,
+        )
+        return sorted(
+            name for name, _factory in getSiteManager().adapters.lookupAll(required, IViewlet)
+        )
+
+    def slots(self):
+        """Each slot with its viewlets in current order, as template rows."""
         storage = getUtility(IViewletSettingsStorage)
         skinname = self.context.getCurrentSkinName()
-        hidden = set(storage.getHidden(self.manager_name, skinname))
-        order = self._getOrder(self.manager_name)
-        last = len(order) - 1
-        return [
-            {
-                "name": name,
-                "label": name.rsplit(".", 1)[-1],
-                "hidden": name in hidden,
-                "is_first": index == 0,
-                "is_last": index == last,
-            }
-            for index, name in enumerate(order)
-        ]
+        elements = set(self.pool_elements())
+        assignments = slot_assignments()
+        result = []
+        for slot in SLOTS:
+            hidden = set(storage.getHidden(slot, skinname))
+            order = self._getOrder(slot)
+            last = len(order) - 1
+            rows = [
+                {
+                    "name": name,
+                    "label": name.rsplit(".", 1)[-1],
+                    "hidden": name in hidden,
+                    "is_first": index == 0,
+                    "is_last": index == last,
+                    "is_element": name in elements and assignments.get(name) == slot,
+                }
+                for index, name in enumerate(order)
+            ]
+            result.append({"name": slot, "label": slot.rsplit(".", 1)[-1], "rows": rows})
+        return result
+
+    def unassigned(self):
+        """Layout elements no slot renders."""
+        assignments = slot_assignments()
+        return [name for name in self.pool_elements() if assignments.get(name) not in SLOTS]
+
+    def slot_names(self):
+        return SLOTS
 
     def preview_urls(self):
         base = self.context.absolute_url()
         return {"managed": f"{base}/{self.preview_managed}"}
 
-    def _move(self, viewlet, direction):
-        order = self._getOrder(self.manager_name)
+    def _move(self, manager, viewlet, direction):
+        order = self._getOrder(manager)
         index = order.index(viewlet)
         if direction == "up" and index > 0:
-            self.moveAbove(self.manager_name, viewlet, order[index - 1])
+            self.moveAbove(manager, viewlet, order[index - 1])
         elif direction == "down" and index < len(order) - 1:
-            self.moveBelow(self.manager_name, viewlet, order[index + 1])
+            self.moveBelow(manager, viewlet, order[index + 1])
 
     def __call__(self):
         action = self.request.get("action")
         viewlet = self.request.get("viewlet")
+        manager = self.request.get("manager")
         if action and viewlet:
-            if action in ("up", "down"):
-                self._move(viewlet, action)
-            elif action == "hide":
-                self.hide(self.manager_name, viewlet)
-            elif action == "show":
-                self.show(self.manager_name, viewlet)
+            if action == "assign":
+                slot = self.request.get("slot")
+                if not slot or slot in SLOTS:
+                    assign(viewlet, slot)
+            elif manager in SLOTS:
+                if action in ("up", "down"):
+                    self._move(manager, viewlet, action)
+                elif action == "hide":
+                    self.hide(manager, viewlet)
+                elif action == "show":
+                    self.show(manager, viewlet)
             self.request.response.redirect(f"{self.context.absolute_url()}/@@{self.view_name}")
             return ""
         return self.index()
@@ -138,11 +173,8 @@ classImplementsOnly(
 
 
 class LayoutManageView(_ManageViewletsBase):
-    """Order/visibility for the whole-body layout manager — reorder +
-    hide/show across every visible element on the page."""
+    """Order, visibility and slot assignment for the whole page."""
 
-    manager_name = "plone.pageletlayout.layout"
     view_name = "manage-layout-viewlets"
-    heading = "Whole-page layout"
-    manages = "the whole-body pagelet layout manager"
+    heading = "Page layout"
     preview_managed = "pagelet_view"

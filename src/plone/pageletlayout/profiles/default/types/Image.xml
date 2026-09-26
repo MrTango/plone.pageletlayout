@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The whole-body pagelet layout is THE default view; the classic view stays
+<!-- The slot layout is THE default view; the classic view stays
      addressable (view_methods purge=False). -->
 <object name="Image" meta_type="Dexterity FTI" purge="False">
   <property name="default_view">pagelet_view</property>

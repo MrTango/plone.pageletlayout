@@ -1,0 +1,33 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="plone.pageletlayout">
+
+  <genericsetup:registerProfile
+      name="1004"
+      title="plone.pageletlayout: upgrade to 1004"
+      directory="1004"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+  <genericsetup:upgradeSteps
+      source="1003"
+      destination="1004"
+      profile="plone.pageletlayout:default">
+
+    <genericsetup:upgradeDepends
+        title="Assign the layout elements to the stock viewlet managers"
+        description="Registry record plone.pageletlayout.slot_assignments and the elements' places in the stock managers (viewlets.xml)."
+        import_profile="plone.pageletlayout.upgrades:1004"
+        import_steps="plone.app.registry viewlets"
+        />
+
+    <genericsetup:upgradeStep
+        title="Keep hidden layout elements hidden"
+        description="Carry the hidden set of the retired whole-body manager (plone.pageletlayout.layout) over to the elements' new slots."
+        handler=".v1004.upgrade"
+        />
+
+  </genericsetup:upgradeSteps>
+
+</configure>

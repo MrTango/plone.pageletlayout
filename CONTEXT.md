@@ -28,39 +28,43 @@ The single provider slot inside the frame where the page's visible composition
 renders; every page layout must provide it.
 _Avoid_: content area, main slot
 
-**Whole-body manager**:
-The one ordered viewlet manager holding every visible page element, body
-included; order and visibility are storage-managed.
-_Avoid_: the layout (unqualified), layout manager
-
 ### The stock viewlet stack
 
-**Layout element** (short form "element"):
-One entry of the whole-body manager: a named chrome pagelet, wrapped so the
-manager can order and hide it. Everything visible on a page is one.
-_Avoid_: slot, part, region (that names the frame's provider slot)
+**Slot**:
+A stock viewlet manager the page region renders in a fixed, semantic place —
+`plone.portaltop`, `plone.portalheader` and `plone.mainnavigation` in the
+header, the content managers in `article#content`, `plone.portalfooter` in the
+footer. Order and visibility inside a slot are storage-managed.
+_Avoid_: region (that names the frame's provider slot), position
 
-**Manager bridge** (short form "bridge" only where the main_template bridge
-cannot be meant):
-A layout element that renders one *stock* viewlet manager whole, so viewlets
-registered into it still reach the page. Two kinds: a **sibling bridge** is
-an ordinary element of the whole-body manager; an **in-element bridge**
-renders inside another element, for manager positions that only exist there
-(above/below the content title).
-_Avoid_: wrapper, proxy, adapter; plain "bridge" where
-`bridge.py`'s main_template bridge is also in play
+**Element pool**:
+`ILayoutManager`, the viewlet manager interface every layout element is
+registered for. No manager provides it and nothing renders it directly.
+_Avoid_: whole-body manager (the retired flat manager), layout manager
+
+**Layout element** (short form "element"):
+A named chrome pagelet, registered for the element pool through a
+`PageletViewlet` wrapper, so a slot can render, order and hide it. The body,
+the content header and the status messages are fixed parts of the frame, not
+elements.
+_Avoid_: part, region
+
+**Slot assignment**:
+The registry record `plone.pageletlayout.slot_assignments`, mapping each
+layout element to the slot it renders in. Changing it takes effect on the
+next request, without a restart.
+_Avoid_: placement, manager mapping
 
 **Orphan viewlet**:
-A viewlet whose manager no bridge renders — it disappears from a pagelet page
+A viewlet whose manager no slot renders — it disappears from a pagelet page
 with no exception and no log line. The set is pinned by the viewlet ratchet
 (`tests/orphan_viewlets_allowlist.txt`) and can only shrink.
 _Avoid_: missing viewlet, dropped viewlet
 
 **Deprecation signal**:
 The log line a compatibility path emits naming what rode it and how to leave
-it — one per bridged viewlet, one per macro-path consumer. Logging, never
-`DeprecationWarning`: Zope's filters swallow those and dedupe per code
-location.
+it — one per macro-path consumer. Logging, never `DeprecationWarning`: Zope's
+filters swallow those and dedupe per code location.
 _Avoid_: deprecation warning (that names the Python mechanism this is not)
 
 ### Request-time layout selection
@@ -118,8 +122,9 @@ _Avoid_: fragment (its response is a full document by contract), ajax mode
 **Fragment contract**:
 What the ajax layout's response guarantees its consumers: literal `<body>`
 with patterns-settings data attributes, `.portalMessage`, first `h1`,
-`#content`/`#content-core`. `#content` exists only in the ajax layout;
-`#content-core` is the body element's wrapper in every layout.
+`#content`/`#content-core`. `#content` is the content article of the default
+and ajax layouts; `#content-core` is the body element's wrapper in every
+layout.
 _Avoid_: ajax API, markup contract (unqualified)
 
 **Layout body class**:

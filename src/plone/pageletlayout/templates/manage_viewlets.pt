@@ -14,73 +14,126 @@
 </head>
 <body>
   <main class="plone-center plone-center--wide"
-        tal:define="base string:${context/absolute_url}/@@${view/view_name}?_authenticator=${view/token};
+        tal:define="token view/token;
+                    base string:${context/absolute_url}/@@${view/view_name}?_authenticator=${token};
+                    action string:${context/absolute_url}/@@${view/view_name};
+                    slot_names view/slot_names;
                     urls view/preview_urls">
     <div class="plone-stack" style="--plone-stack-space: var(--plone-space-m)">
 
       <h1 class="documentFirstHeading" tal:content="view/heading">Layout</h1>
 
-      <p class="documentDescription">
-        Order and visibility for <span tal:replace="view/manages">the manager</span>
-        (<code tal:content="view/manager_name">dotted.name</code>). Changes are
-        written to the shared viewlet storage and take effect on the layout view.
+      <p class="documentDescription" i18n:translate="">
+        Order, visibility and slot of every viewlet in the page layout.
+        Layout elements can move to another slot; stock viewlets stay in
+        the manager they are registered for.
       </p>
 
       <p>
-        <a href="${urls/managed}" target="_blank">Preview the layout</a>
+        <a href="${urls/managed}" target="_blank" i18n:translate="">Preview the layout</a>
       </p>
 
-      <table class="table table-striped align-middle">
-        <thead>
-          <tr>
-            <th i18n:translate="">Order</th>
-            <th i18n:translate="">Element</th>
-            <th i18n:translate="">State</th>
-            <th i18n:translate="">Move</th>
-            <th i18n:translate="">Visibility</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr tal:repeat="element view/elements"
-              tal:attributes="data-viewlet element/name;
-                              class python:'text-muted' if element['hidden'] else None">
-            <td tal:content="repeat/element/number">1</td>
-            <td>
-              <strong tal:content="element/label">title</strong>
-              <br />
-              <small class="text-muted" tal:content="element/name">dotted.name</small>
-            </td>
-            <td>
-              <span tal:condition="element/hidden"
-                    class="badge bg-secondary" i18n:translate="">hidden</span>
-              <span tal:condition="not:element/hidden"
-                    class="badge bg-success" i18n:translate="">visible</span>
-            </td>
-            <td>
-              <span class="plone-cluster" style="--plone-cluster-space: var(--plone-space-3xs)">
-                <a tal:condition="not:element/is_first"
-                   class="btn btn-sm btn-outline-secondary"
-                   href="${base}&action=up&viewlet=${element/name}"
-                   title="Move up">&uarr;</a>
-                <a tal:condition="not:element/is_last"
-                   class="btn btn-sm btn-outline-secondary"
-                   href="${base}&action=down&viewlet=${element/name}"
-                   title="Move down">&darr;</a>
-              </span>
-            </td>
-            <td>
-              <a tal:condition="element/hidden"
-                 class="btn btn-sm btn-outline-primary"
-                 href="${base}&action=show&viewlet=${element/name}"
-                 i18n:translate="">show</a>
-              <a tal:condition="not:element/hidden"
-                 class="btn btn-sm btn-outline-warning"
-                 href="${base}&action=hide&viewlet=${element/name}"
-                 i18n:translate="">hide</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+      <section tal:repeat="slot view/slots"
+               tal:attributes="data-slot slot/name">
+        <h2 tal:content="slot/label">portalheader</h2>
+        <p tal:condition="not:slot/rows" class="text-muted" i18n:translate="">empty</p>
+        <table class="table table-striped align-middle" tal:condition="slot/rows">
+          <thead>
+            <tr>
+              <th i18n:translate="">Viewlet</th>
+              <th i18n:translate="">State</th>
+              <th i18n:translate="">Move</th>
+              <th i18n:translate="">Visibility</th>
+              <th i18n:translate="">Slot</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tal:repeat="row slot/rows"
+                tal:attributes="data-viewlet row/name;
+                                class python:'text-muted' if row['hidden'] else None">
+              <td>
+                <strong tal:content="row/label">title</strong>
+                <br />
+                <small class="text-muted" tal:content="row/name">dotted.name</small>
+              </td>
+              <td>
+                <span tal:condition="row/hidden"
+                      class="badge bg-secondary" i18n:translate="">hidden</span>
+                <span tal:condition="not:row/hidden"
+                      class="badge bg-success" i18n:translate="">visible</span>
+              </td>
+              <td>
+                <span class="plone-cluster" style="--plone-cluster-space: var(--plone-space-3xs)">
+                  <a tal:condition="not:row/is_first"
+                     class="btn btn-sm btn-outline-secondary"
+                     href="${base}&action=up&manager=${slot/name}&viewlet=${row/name}"
+                     title="Move up">&uarr;</a>
+                  <a tal:condition="not:row/is_last"
+                     class="btn btn-sm btn-outline-secondary"
+                     href="${base}&action=down&manager=${slot/name}&viewlet=${row/name}"
+                     title="Move down">&darr;</a>
+                </span>
+              </td>
+              <td>
+                <a tal:condition="row/hidden"
+                   class="btn btn-sm btn-outline-primary"
+                   href="${base}&action=show&manager=${slot/name}&viewlet=${row/name}"
+                   i18n:translate="">show</a>
+                <a tal:condition="not:row/hidden"
+                   class="btn btn-sm btn-outline-warning"
+                   href="${base}&action=hide&manager=${slot/name}&viewlet=${row/name}"
+                   i18n:translate="">hide</a>
+              </td>
+              <td>
+                <form tal:condition="row/is_element" method="get" action="${action}"
+                      class="plone-cluster" style="--plone-cluster-space: var(--plone-space-3xs)">
+                  <input type="hidden" name="_authenticator" value="${token}" />
+                  <input type="hidden" name="action" value="assign" />
+                  <input type="hidden" name="viewlet" value="${row/name}" />
+                  <select name="slot" class="form-select form-select-sm"
+                          aria-label="Slot" i18n:attributes="aria-label">
+                    <option tal:repeat="name slot_names"
+                            tal:attributes="value name;
+                                            selected python:name == slot['name'] or None"
+                            tal:content="name">plone.portalheader</option>
+                    <option value="" i18n:translate="">(unassigned)</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary"
+                          i18n:translate="">move</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section tal:define="unassigned view/unassigned" tal:condition="unassigned">
+        <h2 i18n:translate="">Unassigned elements</h2>
+        <table class="table align-middle">
+          <tbody>
+            <tr tal:repeat="name unassigned" tal:attributes="data-viewlet name">
+              <td tal:content="name">dotted.name</td>
+              <td>
+                <form method="get" action="${action}"
+                      class="plone-cluster" style="--plone-cluster-space: var(--plone-space-3xs)">
+                  <input type="hidden" name="_authenticator" value="${token}" />
+                  <input type="hidden" name="action" value="assign" />
+                  <input type="hidden" name="viewlet" value="${name}" />
+                  <select name="slot" class="form-select form-select-sm"
+                          aria-label="Slot" i18n:attributes="aria-label">
+                    <option tal:repeat="slot_name slot_names"
+                            tal:attributes="value slot_name"
+                            tal:content="slot_name">plone.portalheader</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary"
+                          i18n:translate="">assign</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
     </div>
   </main>

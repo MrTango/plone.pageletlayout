@@ -1,4 +1,0 @@
-<div xmlns:tal="http://xml.zope.org/namespaces/tal"
-     tal:condition="view/contents"
-     tal:attributes="class view/element_class"
-     tal:content="structure view/contents">The stock manager's viewlets.</div>

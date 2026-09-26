@@ -191,8 +191,8 @@ the fullscreen layer is applied) onto `<body>` alongside
 ### `default`
 
 The absence of a layer: shared frame (`templates/layout.pt` — full head,
-toolbar, `.plone-layout` grid), whole-body managed region
-(`ManagedLayoutRegionChromePagelet`). No registry entry.
+toolbar, `.plone-layout` grid), slot layout region
+(`SlotLayoutRegionChromePagelet`). No registry entry.
 
 ### `fullscreen`
 
@@ -274,10 +274,9 @@ Guarantees to consumers (what stock patterns extract):
 - `#content-core` — `BodyChromePagelet`'s wrapper, present in **every**
   layout (`pagelets/content.py`).
 
-**`#content` is not universal.** Faithful Barceloneta nesting everywhere
-would force a content-group element and break the flat one-manager
-concept, so managed pages use per-view content ids (`#content-listing`, …).
-Two responses do carry it:
+**`#content` in the default layout** is the slot layout's content article,
+as in classic main_template. Before the slot layout it was not universal, and
+two responses carried it:
 
 - **every ajax response**, as the fragment contract above;
 - **framed pages in any layout** (`FramedPage`, pagelets/framed.py). Not

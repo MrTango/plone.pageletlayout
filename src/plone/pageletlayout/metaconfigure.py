@@ -128,8 +128,7 @@ def chromePageletDirective(
     Arbitrary keyword arguments land as class attributes, the way
     ``plone:pagelet`` (and stock ``browser:viewlet``) already pass them —
     so ONE generic class can serve many registrations, parameterized per
-    stanza. That is what the stock-manager bridges use
-    (``manager_name="plone.portalfooter"``, see pagelets/managers.py).
+    stanza, the way ``PageletViewlet`` is parameterized by ``pagelet=``.
 
     Deliberately no permission attribute: a provider adapter is never
     traversed by ZPublisher, so there is nothing that would enforce one

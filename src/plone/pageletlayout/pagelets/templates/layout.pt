@@ -25,14 +25,15 @@
   <tal:toolbar replace="structure provider:plone.toolbar" />
 
   <!-- The single layout container: a named-column grid (see section 4 of the
-       theming architecture). Its direct children are the layout elements, each
-       landing in the readable content column unless it opts into .plone-bleed.
+       theming architecture). Its direct children are the header, main and
+       footer landmarks, each a .plone-region subgrid whose children land in
+       the readable content column unless they opt into .plone-bleed.
        Vertical rhythm is the grid's row-gap (plone-layout-space token). No
        Bootstrap .container, no .row/.col: the primitive owns measure,
        centering, and gutters through clara tokens. -->
   <div class="plone-layout">
-    <!-- THE single provider point: the managed whole-body manager, resolved
-         from one provider name. -->
+    <!-- THE single provider point: the slot layout, resolved from one
+         provider name so page layouts can swap it. -->
     <tal:layout replace="structure provider:plone.pageletlayout.pagelayout" />
   </div>
 

@@ -10,9 +10,8 @@ plone.volto's backend warning — so an element that renders only the message
 loop silently drops every one of them. This pagelet owns the themed ``aside``
 shell and nothing else; the manager renders inside it.
 
-The manager lookup itself is ``managers.render_stock_manager`` — this element
-was the prototype the stock-manager bridges generalized, and sharing the
-helper keeps the two from drifting.
+The manager lookup itself is ``managers.render_stock_manager``, shared with
+the content header.
 """
 
 from plone.pageletlayout.chrome import ChromePagelet
@@ -27,11 +26,8 @@ class StatusMessagesChromePagelet(ChromePagelet):
     """The alert region — plone.globalstatusmessage's job, done by
     plone.globalstatusmessage.
 
-    A manager bridge like the ones in managers.py, and it uses the same
-    helper: the lookup happens in code against ``self.view``, and every
-    viewlet that rides it logs the deprecation signal. It differs only in
-    owning a themed ``aside`` shell of its own — which is why it is not one
-    of the generic ``StockManagerChromePagelet`` registrations.
+    The lookup happens in code against ``self.view``; the element owns
+    the themed ``aside`` shell around the manager.
     """
 
     def update(self):

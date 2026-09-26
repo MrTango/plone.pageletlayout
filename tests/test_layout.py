@@ -1,22 +1,34 @@
-"""Render smoke tests for the whole-body pagelet layout.
+"""Render tests for the slot layout.
 
-Verifies the managed pagelet view renders end-to-end (no TAL errors in the
-markup-contract templates), that the stable class hooks the theming contract
-guarantees are present, and that the GS default order (viewlets.xml) stays in
-parity with the canonical ``layout.ELEMENTS``.
+The pagelet view renders end-to-end with the markup-contract hooks, the
+elements land in the stock managers their slot assignment names — nested in
+header, main and footer — and the shipped assignment stays in parity with
+``slots.DEFAULT_ASSIGNMENTS``.
 """
 
+import pathlib
 import re
 import unittest
 
+import lxml.html
 import transaction
+from zope.component import getUtility
 
 from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from plone.app.viewletmanager.interfaces import IViewletSettingsStorage
 from plone.formwidget.namedfile.converter import b64encode_file
-from plone.pageletlayout.pagelets.layout import ELEMENTS
+from plone.pageletlayout.pagelets.slots import assign
+from plone.pageletlayout.pagelets.slots import ASSIGNMENTS_RECORD
+from plone.pageletlayout.pagelets.slots import DEFAULT_ASSIGNMENTS
+from plone.pageletlayout.pagelets.slots import SLOTS
 from plone.pageletlayout.testing import FUNCTIONAL_TESTING
+from plone.pageletlayout.testing import INTEGRATION_TESTING
+
+
+PACKAGE = pathlib.Path(__file__).parent.parent / "src" / "plone" / "pageletlayout"
+SKINNAME = "Plone Default"
 
 
 class TestLayoutRender(unittest.TestCase):
@@ -87,26 +99,111 @@ class TestLayoutRender(unittest.TestCase):
         self.assertNotIn("width=", img)
 
 
-class TestOrderParity(unittest.TestCase):
-    """The flat variant used to guarantee a fixed, config-immune element order;
-    with it gone, this parity test keeps ``viewlets.xml`` (the GS default the
-    managed manager imports) honest against the canonical ``layout.ELEMENTS``.
-    """
+class TestSlotFrame(unittest.TestCase):
+    """Elements render inside the landmark their slot belongs to."""
 
-    def test_viewlets_xml_matches_elements(self):
-        import plone.pageletlayout
+    layer = FUNCTIONAL_TESTING
 
-        package_dir = plone.pageletlayout.__path__[0]
-        viewlets_xml = f"{package_dir}/profiles/default/viewlets.xml"
-        with open(viewlets_xml, encoding="utf-8") as fh:
-            xml = fh.read()
-        # Only the <order> block: the file also carries <hidden> sets for the
-        # stock viewlets our elements replace (pagelets/managers.py), whose
-        # names are stock viewlet names, not layout elements.
-        order_block = re.search(r"<order\b.*?</order>", xml, re.DOTALL).group(0)
-        order = tuple(re.findall(r'<viewlet\s+name="([^"]+)"', order_block))
+    def setUp(self):
+        self.portal = self.layer["portal"]
+        setRoles(self.portal, TEST_USER_ID, ["Manager"])
+        self.doc = api.content.create(
+            container=self.portal, type="Document", id="a-page", title="A Page"
+        )
+        transaction.commit()
+
+    def tree(self):
+        return lxml.html.fromstring(self.doc.restrictedTraverse("pagelet_view")())
+
+    def test_elements_sit_in_their_landmarks(self):
+        tree = self.tree()
+        expected = {
+            "#portal-top": ("#portal-logo", ".element-searchbox", "#portal-globalnav"),
+            "#main-container": ("#portal-breadcrumbs", "#content"),
+            "#content": (".element-contentheader", "#section-byline", "#content-core"),
+            "#portal-footer-wrapper": (".element-colophon", ".element-siteactions"),
+        }
+        for landmark, hooks in expected.items():
+            for hook in hooks:
+                with self.subTest(landmark=landmark, hook=hook):
+                    self.assertEqual(len(tree.cssselect(f"{landmark} {hook}")), 1)
+
+    def test_landmarks_are_regions_of_the_layout(self):
+        tree = self.tree()
+        landmarks = ("header#portal-top", "main#main-container", "footer#portal-footer-wrapper")
+        for selector in landmarks:
+            with self.subTest(selector=selector):
+                (landmark,) = tree.cssselect(f".plone-layout > {selector}")
+                self.assertIn("plone-region", landmark.get("class"))
+
+    def test_moving_an_element_needs_no_restart(self):
+        assign("plone.pageletlayout.searchbox", "plone.portalfooter")
+        transaction.commit()
+        tree = self.tree()
+        self.assertEqual(len(tree.cssselect("#portal-footer-wrapper .element-searchbox")), 1)
+        self.assertEqual(len(tree.cssselect("#portal-top .element-searchbox")), 0)
+
+    def test_order_inside_a_slot_comes_from_the_storage(self):
+        storage = getUtility(IViewletSettingsStorage)
+        order = list(storage.getOrder("plone.portalfooter", SKINNAME))
+        order.remove("plone.pageletlayout.siteactions")
+        order.insert(0, "plone.pageletlayout.siteactions")
+        storage.setOrder("plone.portalfooter", SKINNAME, tuple(order))
+        transaction.commit()
+        html = self.doc.restrictedTraverse("pagelet_view")()
+        self.assertLess(html.index("element-siteactions"), html.index("element-colophon"))
+
+    def test_hiding_an_element_in_its_slot(self):
+        storage = getUtility(IViewletSettingsStorage)
+        hidden = storage.getHidden("plone.portalfooter", SKINNAME)
+        storage.setHidden(
+            "plone.portalfooter", SKINNAME, hidden + ("plone.pageletlayout.colophon",)
+        )
+        transaction.commit()
+        self.assertEqual(self.tree().cssselect(".element-colophon"), [])
+
+    def test_an_unassigned_element_renders_nowhere(self):
+        assign("plone.pageletlayout.colophon", None)
+        transaction.commit()
+        self.assertEqual(self.tree().cssselect(".element-colophon"), [])
+
+    def test_empty_footer_leaves_no_landmark(self):
+        for name, slot in DEFAULT_ASSIGNMENTS.items():
+            if slot == "plone.portalfooter":
+                assign(name, None)
+        storage = getUtility(IViewletSettingsStorage)
+        hidden = storage.getHidden("plone.portalfooter", SKINNAME)
+        storage.setHidden("plone.portalfooter", SKINNAME, hidden + ("plone.footer",))
+        transaction.commit()
+        self.assertEqual(self.tree().cssselect("#portal-footer-wrapper"), [])
+
+
+class TestSlotParity(unittest.TestCase):
+    """registry.xml, viewlets.xml and the 1004 upgrade profile agree with
+    ``slots.DEFAULT_ASSIGNMENTS``."""
+
+    layer = INTEGRATION_TESTING
+
+    def test_installed_assignments_match_the_code(self):
+        self.assertEqual(api.portal.get_registry_record(ASSIGNMENTS_RECORD), DEFAULT_ASSIGNMENTS)
+
+    def test_every_assignment_names_a_slot(self):
+        self.assertLessEqual(set(DEFAULT_ASSIGNMENTS.values()), set(SLOTS))
+
+    def test_every_element_has_a_place_in_its_slot(self):
+        storage = getUtility(IViewletSettingsStorage)
+        for name, slot in DEFAULT_ASSIGNMENTS.items():
+            with self.subTest(name=name):
+                self.assertIn(name, storage.getOrder(slot, SKINNAME))
+
+    def test_upgrade_profile_matches_the_default_profile(self):
+        default = PACKAGE / "profiles" / "default"
+        upgrade = PACKAGE / "upgrades" / "1004"
         self.assertEqual(
-            order,
-            ELEMENTS,
-            "profiles/default/viewlets.xml order must mirror layout.ELEMENTS",
+            (upgrade / "viewlets.xml").read_text(), (default / "viewlets.xml").read_text()
+        )
+        record = re.compile(r"<record\b.*?</record>", re.DOTALL)
+        self.assertEqual(
+            record.findall((upgrade / "registry.xml").read_text()),
+            record.findall((default / "registry.xml").read_text()),
         )

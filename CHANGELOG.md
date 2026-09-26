@@ -2,6 +2,20 @@
 
 ## 1.0.0a1 (unreleased)
 
+- The slot layout replaces the whole-body manager. The page region renders
+  Plone's stock viewlet managers nested in `header#portal-top`,
+  `main#main-container` (with `article#content`) and
+  `footer#portal-footer-wrapper`, each a `.plone-region`, so the page keeps
+  its semantic landmarks. The layout elements stay registered for
+  `ILayoutManager`, now the element pool; the registry record
+  `plone.pageletlayout.slot_assignments` decides which stock manager renders
+  each one, through plone.app.viewletmanager's new `IAdditionalViewlets`
+  hook. Moving an element needs no ZCML and no restart, and
+  `@@manage-layout-viewlets` orders, hides and moves elements per slot.
+  The eight stock-manager bridge elements and their deprecation signal are
+  gone: viewlets in the stock managers are first-class again. Upgrade step
+  1004 installs the assignments and keeps hidden elements hidden.
+
 - The logo `<img>` carries the logo's intrinsic `width` and `height`, read
   from the registry logo (or the stock `plone-logo.svg`), so the browser
   reserves its box before the image loads and the header does not shift

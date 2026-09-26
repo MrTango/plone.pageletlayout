@@ -1,16 +1,16 @@
-"""The whole-body, one-manager pagelet layout.
+"""The slot layout: Plone's stock viewlet managers in their semantic places.
 
-Every visible element sits directly on ``<body>`` (the toolbar excepted — a
-foreign subsystem that self-gates). ONE stock ``OrderedViewletManager`` named
-``plone.pageletlayout.layout`` holds every element (body included) as the
-same logic-free ``PageletViewlet`` wrapper. Order and visibility come from
-``IViewletSettingsStorage`` (GS ``viewlets.xml``, ``@@manage-layout-viewlets``,
-a future drag&drop UI), so the managed variant reorders/hides the *whole page*.
+The page region nests the stock managers the way classic main_template does —
+``<header>`` (portaltop, portalheader, mainnavigation), ``<main>`` (status
+messages, abovecontent, ``article#content`` with the content header, body and
+the content managers) and ``<footer>`` (portalfooter). The toolbar stays a
+foreign subsystem outside the region.
 
-There is a single published variant: ``pagelet_view`` → the managed layout,
-one provider name ``plone.pageletlayout.pagelayout`` resolving to the ordered
-manager. ``ELEMENTS`` below stays the canonical top-to-bottom order; a parity
-test pins ``viewlets.xml`` to it.
+Layout elements are ``PageletViewlet`` wrappers registered for the element
+pool ``ILayoutManager``; a slot assignment (slots.py) decides which stock
+manager renders each one. Order and visibility come from
+``IViewletSettingsStorage`` per manager (GS ``viewlets.xml``,
+``@@manage-layout-viewlets``).
 
 Lookups happen in code with ``self.view`` (the published pagelet) — a
 ``provider:`` expression inside a chrome pagelet's own template would hand the
@@ -22,7 +22,6 @@ from zope.component import getMultiAdapter
 from zope.contentprovider.interfaces import IContentProvider
 from zope.interface import implementer
 from zope.viewlet.interfaces import IViewlet
-from zope.viewlet.interfaces import IViewletManager
 
 from plone.pageletlayout.chrome import ChromePagelet
 from plone.pageletlayout.pagelets.content import AlbumPagelet
@@ -37,58 +36,9 @@ from plone.pageletlayout.pagelets.content import ListingPagelet
 from plone.pageletlayout.pagelets.content import NewsItemPagelet
 from plone.pageletlayout.pagelets.content import SummaryPagelet
 from plone.pageletlayout.pagelets.content import TabularPagelet
-
-
-#: The whole-body ordered viewlet manager (registered in configure.zcml as a
-#: stock OrderedViewletManager). Its default order lives in
-#: profiles/default/viewlets.xml.
-MANAGER_NAME = "plone.pageletlayout.layout"
-
-
-class ILayoutManager(IViewletManager):
-    """The single whole-body viewlet manager: every visible element, body
-    included; the toolbar excepted. A stock ``OrderedViewletManager`` provides
-    it — no subclass of ours."""
-
-
-#: The visible elements in canonical top-to-bottom page order (toolbar
-#: excepted — foreign subsystem). The managed variant's default order is this
-#: same list, imported into IViewletSettingsStorage by
-#: profiles/default/viewlets.xml; equality between the two is what the parity
-#: test pins (test_layout.py).
-#:
-#: ``contentheader`` is title + description merged into one ``<header>`` — they
-#: reorder/hide together.
-#:
-#: Eight of these are *bridges* to stock viewlet managers (portaltop,
-#: portalheader, mainnavigation, abovecontent, abovecontentbody,
-#: belowcontentbody, belowcontent, portalfooter — see pagelets/managers.py).
-#: They are ordinary elements: an integrator orders and hides them like any
-#: other. Their positions here mirror classic main_template, so a viewlet an
-#: add-on registered into IBelowContentBody still lands below the body.
-ELEMENTS = (
-    "plone.pageletlayout.portaltop",
-    "plone.pageletlayout.logo",
-    "plone.pageletlayout.anontools",
-    "plone.pageletlayout.portalheader",
-    "plone.pageletlayout.globalnav",
-    "plone.pageletlayout.mainnavigation",
-    "plone.pageletlayout.searchbox",
-    "plone.pageletlayout.breadcrumbs",
-    "plone.pageletlayout.statusmessages",
-    "plone.pageletlayout.abovecontent",
-    "plone.pageletlayout.socialtags",
-    "plone.pageletlayout.contentheader",
-    "plone.pageletlayout.byline",
-    "plone.pageletlayout.abovecontentbody",
-    "plone.pageletlayout.body",
-    "plone.pageletlayout.belowcontentbody",
-    "plone.pageletlayout.belowcontent",
-    "plone.pageletlayout.portalfooter",
-    "plone.pageletlayout.copyright",
-    "plone.pageletlayout.colophon",
-    "plone.pageletlayout.siteactions",
-)
+from plone.pageletlayout.pagelets.slots import CONTENT_HEADER_SLOTS
+from plone.pageletlayout.pagelets.slots import ILayoutManager  # noqa: F401
+from plone.pageletlayout.pagelets.slots import SLOTS
 
 
 @implementer(IViewlet)
@@ -132,31 +82,33 @@ class PageletViewlet(BrowserView):
         return self.provider.render()
 
 
-class ManagedLayoutRegionChromePagelet(ChromePagelet):
-    """Managed variant: delegate to the ordered whole-body manager — order and
-    visibility come from IViewletSettingsStorage configuration."""
+class SlotLayoutRegionChromePagelet(ChromePagelet):
+    """The default page region: the stock managers nested in header, main
+    and footer (templates/pagelayout.pt). Everything renders in update(),
+    against the published pagelet, and only once — the status messages
+    drain their queue on render."""
 
-    def render(self):
-        manager = getMultiAdapter(
-            (self.context, self.request, self.view),
-            IContentProvider,
-            name=MANAGER_NAME,
-        )
-        manager.update()
-        return manager.render()
+    def update(self):
+        self.slots = {
+            name.rsplit(".", 1)[-1]: render_provider(self, name)
+            for name in SLOTS
+            if name not in CONTENT_HEADER_SLOTS.values()
+        }
+        self.statusmessages = render_provider(self, "plone.pageletlayout.statusmessages")
+        self.contentheader = render_provider(self, "plone.pageletlayout.contentheader")
+        self.body = render_provider(self, "plone.pageletlayout.body")
 
 
-def _render_element(region, name):
-    """Render one named element for a fixed-set region. In code, not a
-    ``provider:`` expression: the element must be looked up with
-    ``region.view``, the published pagelet (the BodyChromePagelet lesson)."""
+def render_provider(region, name):
+    """Update and render one named provider for ``region.view``, stripped so
+    an empty manager is detectable (managers join viewlets with newlines)."""
     provider = getMultiAdapter(
         (region.context, region.request, region.view),
         IContentProvider,
         name=name,
     )
     provider.update()
-    return provider.render()
+    return provider.render().strip()
 
 
 class BodyOnlyRegion(ChromePagelet):
@@ -170,7 +122,7 @@ class BodyOnlyRegion(ChromePagelet):
     docs/directives.md)."""
 
     def render(self):
-        return _render_element(self, "plone.pageletlayout.body")
+        return render_provider(self, "plone.pageletlayout.body")
 
 
 class AjaxRegion(ChromePagelet):
@@ -197,9 +149,9 @@ class AjaxRegion(ChromePagelet):
         setHeader("X-Robots-Tag", "noindex")
 
     def render(self):
-        messages = _render_element(self, "plone.pageletlayout.statusmessages")
-        header = _render_element(self, "plone.pageletlayout.contentheader")
-        body = _render_element(self, "plone.pageletlayout.body")
+        messages = render_provider(self, "plone.pageletlayout.statusmessages")
+        header = render_provider(self, "plone.pageletlayout.contentheader")
+        body = render_provider(self, "plone.pageletlayout.body")
         return f'{messages}<article id="content">{header}{body}</article>'
 
 
@@ -214,56 +166,56 @@ class _UnthemedMixin:
 
 
 class LayoutDocumentPagelet(_UnthemedMixin, DocumentPagelet):
-    """Document, whole-body layout (``pagelet_view``)."""
+    """Document, slot layout (``pagelet_view``)."""
 
 
 # The five remaining per-item types (wayfinder ticket 11), each the theme-off
-# whole-body layout over its body-only content pagelet.
+# slot layout over its body-only content pagelet.
 class LayoutNewsItemPagelet(_UnthemedMixin, NewsItemPagelet):
-    """News Item, whole-body layout (``pagelet_view``)."""
+    """News Item, slot layout (``pagelet_view``)."""
 
 
 class LayoutEventPagelet(_UnthemedMixin, EventPagelet):
-    """Event, whole-body layout (``pagelet_view``)."""
+    """Event, slot layout (``pagelet_view``)."""
 
 
 class LayoutFilePagelet(_UnthemedMixin, FilePagelet):
-    """File, whole-body layout (``pagelet_view``)."""
+    """File, slot layout (``pagelet_view``)."""
 
 
 class LayoutImagePagelet(_UnthemedMixin, ImagePagelet):
-    """Image, whole-body layout (``pagelet_view``)."""
+    """Image, slot layout (``pagelet_view``)."""
 
 
 class LayoutLinkPagelet(_UnthemedMixin, LinkPagelet):
-    """Link, whole-body layout (``pagelet_view``)."""
+    """Link, slot layout (``pagelet_view``)."""
 
 
 # The shared folderish listing views (wayfinder ticket 12), each the theme-off
-# whole-body layout over one listing format. Registered for Folder, Collection
+# slot layout over one listing format. Registered for Folder, Collection
 # and the site root; the site-root listing (formerly its own SiteRootListingPagelet
 # + siteroot_listing.pt) folds into this shared set.
 class LayoutListingPagelet(_UnthemedMixin, ListingPagelet):
-    """Folderish ``listing_view``, whole-body layout."""
+    """Folderish ``listing_view``, slot layout."""
 
 
 class LayoutSummaryPagelet(_UnthemedMixin, SummaryPagelet):
-    """Folderish ``summary_view``, whole-body layout."""
+    """Folderish ``summary_view``, slot layout."""
 
 
 class LayoutTabularPagelet(_UnthemedMixin, TabularPagelet):
-    """Folderish ``tabular_view``, whole-body layout."""
+    """Folderish ``tabular_view``, slot layout."""
 
 
 class LayoutFullPagelet(_UnthemedMixin, FullPagelet):
-    """Folderish ``full_view``, whole-body layout."""
+    """Folderish ``full_view``, slot layout."""
 
 
 class LayoutAlbumPagelet(_UnthemedMixin, AlbumPagelet):
-    """Folderish ``album_view``, whole-body layout."""
+    """Folderish ``album_view``, slot layout."""
 
 
 class LayoutFolderContentsPagelet(_UnthemedMixin, FolderContentsPagelet):
-    """``folder_contents``, whole-body layout — published full-screen: the
+    """``folder_contents``, slot layout — published full-screen: the
     registration's ``provides=IFullScreenPagelet`` flips the page region to
     ``BodyOnlyRegion``."""

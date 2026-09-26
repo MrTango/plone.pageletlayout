@@ -53,27 +53,27 @@
   <!-- toolbar: foreign subsystem, self-gating (as in layout.pt) -->
   <tal:toolbar replace="structure provider:plone.toolbar" />
 
-  <!-- The pagelet frame, storage-managed: the whole-body manager's elements,
-       in the order and visibility IViewletSettingsStorage holds — the same
-       ones a pagelet page renders, so an element a theme adds to the layout
-       (viewlets.xml) reaches classic consumers too.
-
-       Only the content's POSITION is template-fixed. METAL slots must sit
-       inline in the body region and a provider's render is opaque to slot
-       filling, so the region stays hand-written here and the manager's
-       elements render around it, split at plone.pageletlayout.body. The
-       contentheader is the one element that stays inline as well; bridge.py
-       says why. -->
+  <!-- The slot frame, the twin of the pagelet page region
+       (pagelets/templates/pagelayout.pt): the stock viewlet managers in
+       header, main and footer, with the layout elements assigned to them.
+       Every classic slot lands inside the element-body wrapper.
+       The slot names inside the body mirror the classic master exactly
+       (content > content macro > body > main > title/description/
+       content-core), so consumer fills bind unchanged; prefs_main_template
+       binds the nested content macro too. -->
   <div class="plone-layout">
-    <tal:before replace="structure python:bridge.chrome_before(view)" />
-    <metal:statusslot define-slot="global_statusmessage" />
+    <header id="portal-top" class="plone-region">
+      <tal:slot replace="structure provider:plone.portaltop" />
+      <tal:slot replace="structure provider:plone.portalheader" />
+      <tal:slot replace="structure provider:plone.mainnavigation" />
+    </header>
 
-    <!-- The body region: every classic slot lands inside the element-body
-         wrapper; the inner structure and slot names mirror the classic
-         master exactly (content > content macro > body > main >
-         title/description/content-core), so consumer fills bind unchanged.
-         prefs_main_template binds the nested content macro too. -->
-    <div class="element-body" tal:condition="python:bridge.show_body(view)">
+    <main id="main-container" class="plone-region">
+      <tal:messages replace="structure provider:plone.pageletlayout.statusmessages" />
+      <metal:statusslot define-slot="global_statusmessage" />
+      <tal:slot replace="structure provider:plone.abovecontent" />
+
+      <div class="element-body">
       <metal:block define-slot="content">
       <metal:content define-macro="content">
         <metal:slot define-slot="body">
@@ -81,28 +81,40 @@
             <metal:bodytext define-slot="main">
 
               <header class="element-contentheader">
+                <tal:slot replace="structure provider:plone.abovecontenttitle" />
                 <metal:title define-slot="content-title">
                   <h1 tal:replace="structure context/@@title" />
                 </metal:title>
+                <tal:slot replace="structure provider:plone.belowcontenttitle" />
                 <metal:description define-slot="content-description">
                   <p tal:replace="structure context/@@description" />
                 </metal:description>
+                <tal:slot replace="structure provider:plone.belowcontentdescription" />
               </header>
 
+              <tal:slot replace="structure provider:plone.abovecontentbody" />
               <div id="content-core">
                 <metal:text define-slot="content-core" tal:content="nothing">
                   Page body text
                 </metal:text>
               </div>
+              <tal:slot replace="structure provider:plone.belowcontentbody" />
 
             </metal:bodytext>
+            <footer class="plone-region"
+                    tal:define="below provider:plone.belowcontent"
+                    tal:condition="python:below.strip()"
+                    tal:content="structure below">below content</footer>
           </article>
         </metal:slot>
       </metal:content>
       </metal:block>
-    </div>
+      </div>
+    </main>
 
-    <tal:after replace="structure python:bridge.chrome_after(view)" />
+    <footer id="portal-footer-wrapper" class="plone-region">
+      <tal:slot replace="structure provider:plone.portalfooter" />
+    </footer>
   </div>
 
   <!-- Diazo off — strictly AFTER the styles provider rendered, or

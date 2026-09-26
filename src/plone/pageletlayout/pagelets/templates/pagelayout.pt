@@ -1,0 +1,34 @@
+<tal:region xmlns:tal="http://xml.zope.org/namespaces/tal"
+            define="slots view/slots">
+<!-- The page region: Plone's stock viewlet managers in their classic,
+     semantic places. Each landmark is a .plone-region: a subgrid of
+     .plone-layout, so its children keep the page's named column lines.
+     Which manager an element renders in is its slot assignment (slots.py). -->
+<header id="portal-top" class="plone-region"
+        tal:define="top slots/portaltop;
+                    header slots/portalheader;
+                    navigation slots/mainnavigation"
+        tal:condition="python:top or header or navigation">
+  <tal:slot replace="structure top" />
+  <tal:slot replace="structure header" />
+  <tal:slot replace="structure navigation" />
+</header>
+<main id="main-container" class="plone-region">
+  <tal:slot replace="structure view/statusmessages" />
+  <tal:slot replace="structure slots/abovecontent" />
+  <article id="content">
+    <tal:slot replace="structure view/contentheader" />
+    <tal:slot replace="structure slots/abovecontentbody" />
+    <tal:slot replace="structure view/body" />
+    <tal:slot replace="structure slots/belowcontentbody" />
+    <footer class="plone-region"
+            tal:define="below slots/belowcontent"
+            tal:condition="below"
+            tal:content="structure below">below content</footer>
+  </article>
+</main>
+<footer id="portal-footer-wrapper" class="plone-region"
+        tal:define="footer slots/portalfooter"
+        tal:condition="footer"
+        tal:content="structure footer">portal footer</footer>
+</tal:region>

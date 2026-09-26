@@ -8,14 +8,20 @@ supplies the look through CSS tokens.
 
 - **The pagelet layout stack** — the Five-compatible `plone:pagelet` /
   `plone:chromepagelet` / `plone:template` / `plone:layout` ZCML directives, and
-  a single whole-body `OrderedViewletManager` (`plone.pageletlayout.layout`)
-  holding a flat list of ~21 element pagelets (logo, nav, breadcrumbs,
-  contentheader, body, footer, …). Order and visibility come from
-  `IViewletSettingsStorage`.
+  the **slot layout**: Plone's stock viewlet managers nested in `<header>`,
+  `<main>` / `article#content` and `<footer>`, like classic main_template.
+- **Slot assignment in the database** — the layout elements (logo, nav,
+  search, breadcrumbs, byline, footer rows, …) are registered once, and the
+  registry record `plone.pageletlayout.slot_assignments` decides which stock
+  manager renders each one. Moving an element needs no ZCML and no restart.
+  Order and visibility inside a manager come from `IViewletSettingsStorage`
+  (`viewlets.xml`), as for any viewlet. This relies on the
+  `IAdditionalViewlets` hook of plone.app.viewletmanager (unreleased).
 - **One published view per type** — `pagelet_view` (reorder/hide the whole page
   via the storage), all types sharing one shell. The FTI default flips to
   `pagelet_view`.
-- **A management screen** — `@@manage-layout-viewlets` (reorder + hide/show).
+- **A management screen** — `@@manage-layout-viewlets` (reorder, hide/show and
+  move elements between slots).
 - **The markup contract + layout primitives** — semantic templates with stable
   `.element-*` / `.plone-*` hooks, cascade layers, layout primitives (Stack,
   Cluster, Sidebar, Switcher, Grid, Center), default `--plone-*` tokens, and the
@@ -56,7 +62,7 @@ multi-interface `for`) are modeled on [gocept.pagelet](https://github.com/ZeitOn
 ## Features
 
 - Compatible with Plone 6.2+
-- Un-themed, single-column, whole-body layout (no Diazo, no Barceloneta skeleton)
+- Un-themed, single-column slot layout (no Diazo, no Barceloneta skeleton)
 
 ## Installation
 

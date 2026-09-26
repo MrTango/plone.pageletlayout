@@ -6,12 +6,8 @@
   <!-- Head plumbing + visible-chrome pagelets (the layout's region map). -->
   <include file="chrome.zcml" />
 
-  <!-- The stock viewlet managers, bridged in as layout elements — without
-       these every viewlet an add-on registers into IAboveContentBody,
-       IPortalFooter, … silently vanishes from a pagelet page. -->
-  <include file="managers.zcml" />
-
-  <!-- The whole-body, one-manager layout — THE pagelet layout. -->
+  <!-- The slot layout — THE pagelet layout: the stock viewlet managers in
+       header, main and footer, and the elements assigned to them. -->
   <include file="layout.zcml" />
 
   <!-- The S1 wrapped-form layout seam: FormWrapper views render the frame

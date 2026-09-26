@@ -44,7 +44,6 @@ from zope.viewlet.interfaces import IViewletManager
 
 from plone.pageletlayout.pagelets.layout import ILayoutManager
 from plone.pageletlayout.pagelets.managers import RENDERED_MANAGERS
-from plone.pageletlayout.pagelets.managers import viewlet_class_origin
 from plone.pageletlayout.testing import INTEGRATION_TESTING
 from tests.test_static_ratchet import _iter_registrations
 from tests.test_static_ratchet import _normalize as _relative_path
@@ -71,6 +70,28 @@ def rendered_manager_interfaces():
             continue
         found.add(registration.provided)
     return found
+
+
+#: The modules the viewlet ZCML directives synthesize their classes in.
+_FACTORY_MODULES = frozenset(
+    {
+        "Products.Five.viewlet.metaconfigure",
+        "zope.viewlet.metaconfigure",
+    }
+)
+
+
+def viewlet_class_origin(klass):
+    """``module.ClassName`` of the class an add-on actually wrote.
+
+    ``browser:viewlet`` synthesizes a class that keeps the base's name, so
+    the first base of the same name from a real module is the one to name.
+    A template-only viewlet has no such base; its synthesized name is kept.
+    """
+    for base in klass.__mro__[1:]:
+        if base.__name__ == klass.__name__ and base.__module__ not in _FACTORY_MODULES:
+            return f"{base.__module__}.{base.__name__}"
+    return f"{klass.__module__}.{klass.__name__}"
 
 
 #: Any absolute path embedded in a synthesized class name.

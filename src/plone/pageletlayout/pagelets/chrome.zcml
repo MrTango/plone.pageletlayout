@@ -6,8 +6,9 @@
   <!-- ======================================================================
        The layout's chrome providers: invisible head plumbing (wrapped,
        reused) + one chrome pagelet per visible element. Each provider name is
-       the layout's fixed region map; the whole-body manager renders them by
-       name (profiles/default/viewlets.xml order).
+       the layout's region map: the frame renders the fixed ones (status
+       messages, content header, body), the stock managers the elements
+       assigned to them (pagelets/slots.py).
        ====================================================================== -->
 
   <!-- head plumbing -->

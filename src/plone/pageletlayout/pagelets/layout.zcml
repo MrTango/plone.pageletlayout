@@ -5,23 +5,14 @@
     i18n_domain="plone.pageletlayout">
 
   <!-- ======================================================================
-       The whole-body, one-manager layout. See layout.py.
+       The slot layout: stock managers in header, main and footer. See layout.py.
        ====================================================================== -->
 
-  <!-- 1. The ONE whole-body manager: a stock OrderedViewletManager (reused,
-       not subclassed) holding every visible element. Default order:
-       profiles/default/viewlets.xml. -->
-  <browser:viewletManager
-      name="plone.pageletlayout.layout"
-      provides=".layout.ILayoutManager"
-      class="plone.app.viewletmanager.manager.OrderedViewletManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
-      permission="zope2.View"
-      />
-
-  <!-- The wrappers: ONE class (.layout.PageletViewlet), parameterized per
-       registration by pagelet="..."; viewlet name == pagelet name (the body
-       wraps the stock "pagelet" provider via chrome pagelet body). -->
+  <!-- 1. The layout elements, registered for the element pool
+       (.slots.ILayoutManager). ONE class (.layout.PageletViewlet),
+       parameterized per registration by pagelet="..."; viewlet name ==
+       pagelet name. The registry record plone.pageletlayout.slot_assignments
+       decides which stock manager renders each one (see slots.py). -->
   <browser:viewlet name="plone.pageletlayout.logo" pagelet="plone.pageletlayout.logo"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
@@ -37,19 +28,10 @@
   <browser:viewlet name="plone.pageletlayout.breadcrumbs" pagelet="plone.pageletlayout.breadcrumbs"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.statusmessages" pagelet="plone.pageletlayout.statusmessages"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
   <browser:viewlet name="plone.pageletlayout.socialtags" pagelet="plone.pageletlayout.socialtags"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.contentheader" pagelet="plone.pageletlayout.contentheader"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
   <browser:viewlet name="plone.pageletlayout.byline" pagelet="plone.pageletlayout.byline"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.body" pagelet="plone.pageletlayout.body"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
   <browser:viewlet name="plone.pageletlayout.copyright" pagelet="plone.pageletlayout.copyright"
@@ -62,39 +44,18 @@
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
 
-  <!-- ... and the eight stock-manager bridges (pagelets/managers.zcml), the
-       same wrapper around a chrome pagelet that renders one stock manager.
-       Storage-managed like every other element: viewlets.xml orders them,
-       @@manage-layout-viewlets hides them. -->
-  <browser:viewlet name="plone.pageletlayout.portaltop" pagelet="plone.pageletlayout.portaltop"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.portalheader" pagelet="plone.pageletlayout.portalheader"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.mainnavigation" pagelet="plone.pageletlayout.mainnavigation"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.abovecontent" pagelet="plone.pageletlayout.abovecontent"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.abovecontentbody" pagelet="plone.pageletlayout.abovecontentbody"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.belowcontentbody" pagelet="plone.pageletlayout.belowcontentbody"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.belowcontent" pagelet="plone.pageletlayout.belowcontent"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
-  <browser:viewlet name="plone.pageletlayout.portalfooter" pagelet="plone.pageletlayout.portalfooter"
-      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
-      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <!-- The subscriber handing each slot's manager its assigned elements. -->
+  <subscriber
+      factory=".slots.AssignedElements"
+      provides="plone.app.viewletmanager.interfaces.IAdditionalViewlets"
+      />
 
-  <!-- 2. The single provider point: the managed whole-body manager. -->
+  <!-- 2. The single provider point: the stock managers nested in header,
+       main and footer. -->
   <plone:chromepagelet
       name="plone.pageletlayout.pagelayout"
-      class=".layout.ManagedLayoutRegionChromePagelet"
+      class=".layout.SlotLayoutRegionChromePagelet"
+      template="templates/pagelayout.pt"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
 

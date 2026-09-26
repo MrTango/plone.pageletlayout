@@ -157,48 +157,23 @@ and then, out of that ordinary full-page response:
 
 So a converted page keeps its modal working by keeping its `<h1>` and its
 `.formControls` in the body template. `#content` you get for free: the
-framed body element emits it in every layout (`pagelets/framed.py`).
-Nothing here requires a fragment — the ajax layout is for `fetch`-style
-consumers, and asking for it is a *different* URL, not what a modal link
-produces.
-
-An **unported** modal page is fine too: the bridge frame emits the same
-`<article id="content">`, so a page still on the macro path keeps its modal
-working (of CMFPlone's five modal actions — contact, delete, rename, login,
-join — `join`/`@@register` is the one still riding the bridge). The gap is
-narrower than the bridge: a **wrapped** z3c.form (the seam below) renders
-its form body without an `#content` wrapper, so an add-on that opens a
-`wrap_form` page in a modal is the one case that needs
-`FormBodyChromePagelet` (`pagelets/forms.py`) to grow the id — no shipped
-action does.
+slot layout's content article, in the default layout and on the bridge frame
+alike, wrapped z3c.forms included. Nothing here requires a fragment — the
+ajax layout is for `fetch`-style consumers, and asking for it is a
+*different* URL, not what a modal link produces.
 
 ## Porting a viewlet
 
-The same log, a different line:
+Nothing to port. The frame renders Plone's stock viewlet managers —
+`IPortalHeader`, `IAboveContentBody`, `IBelowContentBody`, `IPortalFooter`, …
+— in their classic places (`pagelets/templates/pagelayout.pt`), so a viewlet
+registered into any of them renders exactly where it does on stock Plone.
+Order and hide it per manager in `viewlets.xml` or
+`@@manage-layout-viewlets`.
 
-```
-Viewlet acme.banner (acme.theme.viewlets.BannerViewlet) renders through the
-stock viewlet manager plone.abovecontentbody, bridged into the whole-body
-pagelet layout by plone.pageletlayout. Register it into
-plone.pageletlayout.pagelets.layout.ILayoutManager instead, so it becomes a
-layout element an integrator can order and hide — see
-docs/porting-main-template.md in plone.pageletlayout.
-```
-
-Plone's stock viewlet managers — `IPortalHeader`, `IAboveContentBody`,
-`IBelowContentBody`, `IPortalFooter`, … — are **bridged** into the layout
-(`pagelets/managers.py`): each is rendered by one layout element, so a
-viewlet registered into any of them still reaches the page, in its classic
-position. Nothing breaks, and there is no hurry.
-
-But a bridged viewlet is a passenger. The layout's own elements live in one
-ordered manager whose order and visibility an integrator edits in
-`@@manage-layout-viewlets` — a bridged viewlet is invisible there: it can
-only be moved *within* its stock manager, and the whole bridge is hidden or
-shown as one block. Promoting it is one line, because
-`plone.pageletlayout.layout` is a stock `OrderedViewletManager` and
-`PageletViewlet` is only the wrapper *we* use for our own chrome pagelets —
-any plain viewlet registers into it directly:
+Register it as a **layout element** instead when an integrator should be able
+to move it to another manager. Register it for the element pool, then assign
+it a slot and a place in that slot's order:
 
 ```xml
 <browser:viewlet
@@ -210,78 +185,34 @@ any plain viewlet registers into it directly:
     />
 ```
 
-The signal is not only about your code. It fires for **every** viewlet on a
-bridge, Plone's own included (`plone.lockinfo`, `plone.relateditems`,
-`plone.footer`, …) — those you cannot port and are not expected to; read past
-them to the lines naming your own package. Production logs one line per
-viewlet per process; development mode logs every render.
+```xml
+<!-- registry.xml -->
+<record name="plone.pageletlayout.slot_assignments">
+  <value purge="false">
+    <element key="acme.banner">plone.abovecontentbody</element>
+  </value>
+</record>
 
-Three more things and you are done:
+<!-- viewlets.xml -->
+<order manager="plone.abovecontentbody" skinname="Plone Default">
+  <viewlet name="acme.banner" insert-before="*" />
+</order>
+```
 
-1. **Hide the old registration** in your own profile's `viewlets.xml`, or the
-   viewlet renders twice — once through the bridge, once as an element:
-
-   ```xml
-   <hidden manager="plone.abovecontentbody" skinname="Plone Default">
-     <viewlet name="acme.banner" />
-   </hidden>
-   ```
-
-2. **Give it a position** in the new manager's order — also `viewlets.xml`,
-   in the same file:
-
-   ```xml
-   <order manager="plone.pageletlayout.layout" skinname="Plone Default">
-     <viewlet name="acme.banner" insert-before="plone.pageletlayout.body" />
-   </order>
-   ```
-
-   `insert-before` / `insert-after` place one entry without restating the
-   whole order, so your add-on does not fight the base profile (or another
-   add-on) over the rest of the page.
-
-3. **Add an upgrade step** for those profile changes, as for any GenericSetup
-   XML change, so installed sites get them.
+`purge="false"` adds your entry without replacing the others. Add an upgrade
+step for those profile changes, as for any GenericSetup XML change.
 
 ### Dual registration
 
-An add-on that must keep working on stock Plone cannot hide its stock
-registration: that registration *is* the stock site's viewlet. Keep it, and
-add the `ILayoutManager` one under the **same name**:
+An add-on that must keep working without this package keeps its stock
+registration and adds the `ILayoutManager` one under the **same name**. When
+both land in the same manager, the stock registration wins and the viewlet
+renders once (plone.app.viewletmanager's `IAdditionalViewlets` rule). The two
+registrations may wrap different classes; only the name has to match.
 
-```xml
-<browser:viewlet
-    name="acme.banner"
-    class=".viewlets.BannerViewlet"
-    manager="plone.app.layout.viewlets.interfaces.IAboveContentBody"
-    layer="acme.theme.interfaces.IAcmeThemeLayer"
-    permission="zope2.View"
-    />
-<browser:viewlet
-    name="acme.banner"
-    class=".viewlets.BannerViewlet"
-    manager="plone.pageletlayout.pagelets.layout.ILayoutManager"
-    layer="acme.theme.interfaces.IAcmeThemeLayer"
-    permission="zope2.View"
-    />
-```
+### Viewlets that do not render
 
-On a pagelet page the layout renders the element and the bridge skips the
-twin — a name registered in a bridged stock manager *and* in
-`ILayoutManager` is a ported viewlet, so it renders once and no deprecation
-line names it. The two registrations may wrap different classes; only the
-name has to match. Note the ordering consequence: the element's position is
-the **layout order** (`plone.pageletlayout.layout` in `viewlets.xml`); the
-stock manager's order entry is inert here and only matters on stock Plone.
-
-No pagelet conversion is required: your viewlet class and template are
-unchanged. Converting it to a `plone:chromepagelet` afterwards is an optional
-refinement (it buys the pagelet templating story — computation in `update()`,
-markup from the `IContentTemplate` adapter — and nothing else).
-
-### Viewlets that are not bridged
-
-Four managers are deliberately *not* bridged, because this package
+Four managers are deliberately *not* slots, because this package
 reimplements them rather than rendering them: `plone.htmlhead`,
 `plone.htmlhead.links`, `plone.scripts` and `plone.httpheaders`. The frame's
 `<head>` is composed of chrome pagelets that wrap the individual renderers

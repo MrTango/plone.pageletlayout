@@ -327,11 +327,11 @@ class TestAjaxFragmentContract(FunctionalLayoutTestCase):
         self.assertIn("pagelet-layout-default", html)
         self.assertIn("element-logo", html)
 
-    def test_content_id_is_ajax_only(self):
-        # #content is the ajax layout's extraction hook; other layouts keep
-        # per-view content ids. #content-core is present in every layout.
+    def test_default_layout_has_one_content_article(self):
+        # The slot frame's article#content, like classic main_template;
+        # #content-core is present in every layout.
         default_html = self.open("a-folder/a-doc/pagelet_view")
-        self.assertNotIn('id="content"', default_html)
+        self.assertEqual(default_html.count('id="content"'), 1)
         self.assertIn('id="content-core"', default_html)
 
 

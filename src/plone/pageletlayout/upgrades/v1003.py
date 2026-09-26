@@ -1,8 +1,6 @@
 """Hide the stock viewlets the pagelet layout reimplements."""
 import logging
 
-from plone.pageletlayout.upgrades.viewlet_order import preserving_foreign_order
-
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +20,8 @@ def upgrade(context):
 
     Narrowed to the one import step: a full profile re-import would also
     replay types, registry and rolemap, overwriting whatever the site has
-    customised since install.
-
-    And wrapped, because narrowing is not enough: viewlets.xml restates our
-    whole order, which GenericSetup applies by appending every one of our
-    names — so an element another add-on anchored into the sequence would be
-    left sitting in front of the logo. See upgrades/viewlet_order.py.
+    customised since install. Since 1004 the file holds the elements' places
+    in the stock managers instead of the whole-body order.
     """
-    logger.info("Re-importing the viewlets step: bridge order + stock hidden set")
-    with preserving_foreign_order():
-        context.runImportStepFromProfile(PROFILE, "viewlets", run_dependencies=False)
+    logger.info("Re-importing the viewlets step: stock hidden set")
+    context.runImportStepFromProfile(PROFILE, "viewlets", run_dependencies=False)
