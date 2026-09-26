@@ -2385,8 +2385,8 @@ wheels = [
 
 [[package]]
 name = "plone-app-viewletmanager"
-version = "5.0.0"
-source = { registry = "https://pypi.org/simple" }
+version = "5.0.1.dev0"
+source = { editable = "../plone.app.viewletmanager" }
 dependencies = [
     { name = "persistent" },
     { name = "products-cmfcore" },
@@ -2395,10 +2395,21 @@ dependencies = [
     { name = "zope-contentprovider" },
     { name = "zope-viewlet" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/23/2b/1d5a91849166af03885568998731efea5af70826c689a5c6dfe63633d396/plone_app_viewletmanager-5.0.0.tar.gz", hash = "sha256:0ca59f2a0466022f0b21337a1f9080e39b8ac83740b7d80b49cad0c1245ec2f2", size = 28512, upload-time = "2026-05-16T17:59:08.192Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/ec/7cc18a03d4143c49d36ce8ad1dc20c0dafcb17403a58b1287a68b7ed784c/plone_app_viewletmanager-5.0.0-py3-none-any.whl", hash = "sha256:d2b49c0db8c441ad61bfedf1ff597cd96b78148d1af08f0de302e04d1ebf893a", size = 20656, upload-time = "2026-05-16T17:59:06.519Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "persistent" },
+    { name = "plone-app-testing", marker = "extra == 'test'" },
+    { name = "plone-testing", marker = "extra == 'test'" },
+    { name = "products-cmfcore" },
+    { name = "products-cmfplone", marker = "extra == 'test'" },
+    { name = "products-genericsetup" },
+    { name = "zope" },
+    { name = "zope-contentprovider" },
+    { name = "zope-publisher", marker = "extra == 'test'" },
+    { name = "zope-viewlet" },
 ]
+provides-extras = ["test"]
 
 [[package]]
 name = "plone-app-vocabularies"
@@ -2923,7 +2934,6 @@ dependencies = [
     { name = "plone-app-z3cform" },
     { name = "plone-classicui" },
     { name = "plone-z3cform" },
-    { name = "setuptools" },
     { name = "z3c-pagelet" },
     { name = "z3c-template" },
 ]
@@ -2950,7 +2960,7 @@ requires-dist = [
     { name = "plone-app-caching" },
     { name = "plone-app-testing", marker = "extra == 'test'" },
     { name = "plone-app-upgrade" },
-    { name = "plone-app-viewletmanager" },
+    { name = "plone-app-viewletmanager", editable = "../plone.app.viewletmanager" },
     { name = "plone-app-z3cform" },
     { name = "plone-classicui" },
     { name = "plone-testing", marker = "extra == 'test'" },
@@ -2958,7 +2968,6 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "pytest-plone", marker = "extra == 'test'", specifier = ">=0.5.0" },
-    { name = "setuptools", specifier = "<81" },
     { name = "z3c-pagelet" },
     { name = "z3c-template" },
 ]
