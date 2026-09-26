@@ -68,6 +68,14 @@ class IFullscreenLayoutLayer(IPlonePageletlayoutLayer):
     its name by the ``plone:pagelayout`` stanza in layouts.zcml."""
 
 
+class IBridgedFrameLayer(IPlonePageletlayoutLayer):
+    """Marks a request whose page renders through the main_template bridge.
+
+    The bridge frame prints the content header inline, around the classic
+    ``content-title`` / ``content-description`` slots, so the content-header
+    layout element renders nothing on such a request (framed.zcml)."""
+
+
 class IAjaxLayoutLayer(IPlonePageletlayoutLayer):
     """The ``ajax`` layout layer: the bare fragment-contract document
     serving fetch/modal consumers — what stock ``ajax_load=1`` delivers.

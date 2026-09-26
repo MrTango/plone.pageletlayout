@@ -44,9 +44,11 @@ _Avoid_: whole-body manager (the retired flat manager), layout manager
 
 **Layout element** (short form "element"):
 A named chrome pagelet, registered for the element pool through a
-`PageletViewlet` wrapper, so a slot can render, order and hide it. The body,
-the content header and the status messages are fixed parts of the frame, not
-elements.
+`PageletViewlet` wrapper, so a slot can render, order and hide it. The body
+and the status messages are fixed parts of the frame, not elements. The
+content header is an element (first in `plone.abovecontentbody` by default),
+except on the main_template bridge, which prints it inline around the classic
+title and description slots.
 _Avoid_: part, region
 
 **Slot assignment**:

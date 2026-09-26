@@ -16,6 +16,13 @@
   gone: viewlets in the stock managers are first-class again. Upgrade step
   1004 installs the assignments and keeps hidden elements hidden.
 
+- The content header is a layout element too, assigned first in
+  `plone.abovecontentbody` — where the frame printed it before, so the markup
+  is unchanged until an integrator moves or hides it (upgrade step 1005).
+  The main_template bridge keeps printing it inline around the classic
+  `content-title` / `content-description` slots and marks the request with
+  `IBridgedFrameLayer` while it renders, so the element stays empty there.
+
 - The logo `<img>` carries the logo's intrinsic `width` and `height`, read
   from the registry logo (or the stock `plone-logo.svg`), so the browser
   reserves its box before the image loads and the header does not shift

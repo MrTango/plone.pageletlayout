@@ -21,4 +21,13 @@
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer"
       />
 
+  <!-- The main_template bridge prints the content header inline, around
+       the classic content-title / content-description slots; the
+       content-header layout element must not print a second one. -->
+  <plone:chromepagelet
+      name="plone.pageletlayout.contentheader"
+      class=".framed.EmptyContentHeaderChromePagelet"
+      layer="plone.pageletlayout.interfaces.IBridgedFrameLayer"
+      />
+
 </configure>

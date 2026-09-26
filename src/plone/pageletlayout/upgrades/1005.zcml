@@ -1,0 +1,27 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="plone.pageletlayout">
+
+  <genericsetup:registerProfile
+      name="1005"
+      title="plone.pageletlayout: upgrade to 1005"
+      directory="1005"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+  <genericsetup:upgradeSteps
+      source="1004"
+      destination="1005"
+      profile="plone.pageletlayout:default">
+
+    <genericsetup:upgradeDepends
+        title="Make the content header a movable layout element"
+        description="Assign plone.pageletlayout.contentheader to plone.abovecontentbody, first in its order: the place the frame printed it before."
+        import_profile="plone.pageletlayout.upgrades:1005"
+        import_steps="plone.app.registry viewlets"
+        />
+
+  </genericsetup:upgradeSteps>
+
+</configure>

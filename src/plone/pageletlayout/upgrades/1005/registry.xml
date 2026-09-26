@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registry>
+  <!-- purge="false": adds the one entry, keeps every other assignment. -->
+  <record name="plone.pageletlayout.slot_assignments">
+    <value purge="false">
+      <element key="plone.pageletlayout.contentheader">plone.abovecontentbody</element>
+    </value>
+  </record>
+</registry>

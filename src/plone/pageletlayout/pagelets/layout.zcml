@@ -31,6 +31,9 @@
   <browser:viewlet name="plone.pageletlayout.socialtags" pagelet="plone.pageletlayout.socialtags"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
+  <browser:viewlet name="plone.pageletlayout.contentheader" pagelet="plone.pageletlayout.contentheader"
+      class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
+      layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />
   <browser:viewlet name="plone.pageletlayout.byline" pagelet="plone.pageletlayout.byline"
       class=".layout.PageletViewlet" manager=".layout.ILayoutManager"
       layer="plone.pageletlayout.interfaces.IPlonePageletlayoutLayer" permission="zope2.View" />

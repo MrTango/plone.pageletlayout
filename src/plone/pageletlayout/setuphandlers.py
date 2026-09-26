@@ -12,6 +12,7 @@ class HiddenProfiles:
         return [
             "plone.pageletlayout:uninstall",
             "plone.pageletlayout.upgrades:1004",
+            "plone.pageletlayout.upgrades:1005",
         ]
 
 

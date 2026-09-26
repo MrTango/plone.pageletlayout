@@ -95,7 +95,6 @@ class SlotLayoutRegionChromePagelet(ChromePagelet):
             if name not in CONTENT_HEADER_SLOTS.values()
         }
         self.statusmessages = render_provider(self, "plone.pageletlayout.statusmessages")
-        self.contentheader = render_provider(self, "plone.pageletlayout.contentheader")
         self.body = render_provider(self, "plone.pageletlayout.body")
 
 

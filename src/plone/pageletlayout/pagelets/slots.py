@@ -66,6 +66,7 @@ DEFAULT_ASSIGNMENTS = {
     "plone.pageletlayout.globalnav": "plone.mainnavigation",
     "plone.pageletlayout.breadcrumbs": "plone.abovecontent",
     "plone.pageletlayout.socialtags": "plone.abovecontenttitle",
+    "plone.pageletlayout.contentheader": "plone.abovecontentbody",
     "plone.pageletlayout.byline": "plone.belowcontenttitle",
     "plone.pageletlayout.siteactions": "plone.portalfooter",
     "plone.pageletlayout.copyright": "plone.portalfooter",

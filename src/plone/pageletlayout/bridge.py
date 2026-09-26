@@ -21,7 +21,10 @@ import logging
 from App.config import getConfiguration
 from Products.CMFPlone.browser.main_template import MainTemplate
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from zope.interface import alsoProvides
+from zope.interface import noLongerProvides
 
+from plone.pageletlayout.interfaces import IBridgedFrameLayer
 from plone.pageletlayout.page import resolve_layout_name
 
 
@@ -45,6 +48,13 @@ class BridgedMainTemplate(MainTemplate):
         consumer views are plain BrowserViews without ``layout_name``, so
         the bridge template reaches it via ``context/@@main_template``."""
         return resolve_layout_name(self.request)
+
+    def mark_request(self):
+        """Mark the request while this frame renders (``IBridgedFrameLayer``)."""
+        alsoProvides(self.request, IBridgedFrameLayer)
+
+    def unmark_request(self):
+        noLongerProvides(self.request, IBridgedFrameLayer)
 
     def warn_macro_use(self, template=None):
         """The deprecation signal, called by the frame's master macro.

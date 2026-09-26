@@ -17,7 +17,6 @@
   <tal:slot replace="structure view/statusmessages" />
   <tal:slot replace="structure slots/abovecontent" />
   <article id="content">
-    <tal:slot replace="structure view/contentheader" />
     <tal:slot replace="structure slots/abovecontentbody" />
     <tal:slot replace="structure view/body" />
     <tal:slot replace="structure slots/belowcontentbody" />

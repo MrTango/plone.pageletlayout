@@ -21,6 +21,11 @@
   <order manager="plone.abovecontenttitle" skinname="Plone Default">
     <viewlet name="plone.pageletlayout.socialtags" insert-before="*" />
   </order>
+  <!-- First in plone.abovecontentbody is where the frame used to print the
+       content header itself: at the top of article#content. -->
+  <order manager="plone.abovecontentbody" skinname="Plone Default">
+    <viewlet name="plone.pageletlayout.contentheader" insert-before="*" />
+  </order>
   <order manager="plone.belowcontenttitle" skinname="Plone Default">
     <viewlet name="plone.pageletlayout.byline" insert-before="*" />
   </order>

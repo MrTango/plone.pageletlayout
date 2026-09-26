@@ -19,7 +19,8 @@
                   ajax_load python:False;
                   bridge python:context.restrictedTraverse('@@main_template');
                   layout_name bridge/layout_name;
-                  dummy_deprecation python:bridge.warn_macro_use(template);"
+                  dummy_deprecation python:bridge.warn_macro_use(template);
+                  dummy_marked python:bridge.mark_request();"
       i18n:domain="plone"
       tal:attributes="lang lang;">
 
@@ -122,6 +123,7 @@
        PageletPage.__call__ rule; here document order stands in for
        post-render). -->
   <tal:themeoff define="dummy2 python:request.response.setHeader('X-Theme-Disabled', '1')" />
+  <tal:unmark define="dummy3 python:bridge.unmark_request()" />
 
 </body>
 </html>

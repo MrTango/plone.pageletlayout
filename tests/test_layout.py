@@ -167,6 +167,28 @@ class TestSlotFrame(unittest.TestCase):
         transaction.commit()
         self.assertEqual(self.tree().cssselect(".element-colophon"), [])
 
+    def test_the_content_header_opens_the_article(self):
+        (article,) = self.tree().cssselect("#content")
+        self.assertIn("element-contentheader", article[0].get("class"))
+
+    def test_moving_the_content_header(self):
+        assign("plone.pageletlayout.contentheader", "plone.abovecontent")
+        transaction.commit()
+        tree = self.tree()
+        self.assertEqual(len(tree.cssselect("#main-container > .element-contentheader")), 1)
+        self.assertEqual(tree.cssselect("#content .element-contentheader"), [])
+
+    def test_hiding_the_content_header(self):
+        storage = getUtility(IViewletSettingsStorage)
+        hidden = storage.getHidden("plone.abovecontentbody", SKINNAME)
+        storage.setHidden(
+            "plone.abovecontentbody", SKINNAME, hidden + ("plone.pageletlayout.contentheader",)
+        )
+        transaction.commit()
+        tree = self.tree()
+        self.assertEqual(tree.cssselect(".element-contentheader"), [])
+        self.assertEqual(len(tree.cssselect("#content-core")), 1)
+
     def test_empty_footer_leaves_no_landmark(self):
         for name, slot in DEFAULT_ASSIGNMENTS.items():
             if slot == "plone.portalfooter":
@@ -196,14 +218,17 @@ class TestSlotParity(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIn(name, storage.getOrder(slot, SKINNAME))
 
-    def test_upgrade_profile_matches_the_default_profile(self):
+    def test_upgrade_profiles_are_part_of_the_default_profile(self):
+        """Every entry an upgrade profile writes is also what a fresh install
+        gets, so upgraded and new sites agree."""
         default = PACKAGE / "profiles" / "default"
-        upgrade = PACKAGE / "upgrades" / "1004"
-        self.assertEqual(
-            (upgrade / "viewlets.xml").read_text(), (default / "viewlets.xml").read_text()
-        )
-        record = re.compile(r"<record\b.*?</record>", re.DOTALL)
-        self.assertEqual(
-            record.findall((upgrade / "registry.xml").read_text()),
-            record.findall((default / "registry.xml").read_text()),
-        )
+        viewlet = re.compile(r"<viewlet\b[^>]*/>")
+        element = re.compile(r"<element\b[^>]*>[^<]*</element>")
+        for version in ("1004", "1005"):
+            upgrade = PACKAGE / "upgrades" / version
+            with self.subTest(version=version):
+                for pattern, name in ((viewlet, "viewlets.xml"), (element, "registry.xml")):
+                    expected = set(pattern.findall((default / name).read_text()))
+                    self.assertLessEqual(
+                        set(pattern.findall((upgrade / name).read_text())), expected
+                    )

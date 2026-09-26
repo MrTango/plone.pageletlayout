@@ -42,6 +42,7 @@
       <element key="plone.pageletlayout.globalnav">plone.mainnavigation</element>
       <element key="plone.pageletlayout.breadcrumbs">plone.abovecontent</element>
       <element key="plone.pageletlayout.socialtags">plone.abovecontenttitle</element>
+      <element key="plone.pageletlayout.contentheader">plone.abovecontentbody</element>
       <element key="plone.pageletlayout.byline">plone.belowcontenttitle</element>
       <element key="plone.pageletlayout.siteactions">plone.portalfooter</element>
       <element key="plone.pageletlayout.copyright">plone.portalfooter</element>

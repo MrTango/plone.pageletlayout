@@ -38,18 +38,16 @@ class TestUpgrade1004:
     def upgrade(self):
         self.setup_tool.upgradeProfile(PROFILE)
 
-    def test_profile_version_is_1004(self):
-        self.upgrade()
-        assert self.setup_tool.getLastVersionForProfile(PROFILE) == ("1004",)
-
     def test_assignments_are_installed(self):
         self.upgrade()
-        assert api.portal.get_registry_record(ASSIGNMENTS_RECORD) == DEFAULT_ASSIGNMENTS
+        assignments = api.portal.get_registry_record(ASSIGNMENTS_RECORD)
+        for name, slot in DEFAULT_ASSIGNMENTS.items():
+            assert assignments[name] == slot
 
     def test_elements_get_their_place_in_the_slots(self):
         self.upgrade()
         for name, slot in DEFAULT_ASSIGNMENTS.items():
-            assert name in self.storage.getOrder(slot, SKINNAME)
+            assert name in self.storage.getOrder(slot, SKINNAME), name
 
     def test_hidden_elements_stay_hidden(self):
         self.upgrade()

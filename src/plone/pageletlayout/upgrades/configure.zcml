@@ -7,4 +7,6 @@
 
   <include file="1004.zcml" />
 
+  <include file="1005.zcml" />
+
 </configure>

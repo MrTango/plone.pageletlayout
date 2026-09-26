@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object>
+  <order manager="plone.abovecontentbody" skinname="Plone Default">
+    <viewlet name="plone.pageletlayout.contentheader" insert-before="*" />
+  </order>
+</object>
